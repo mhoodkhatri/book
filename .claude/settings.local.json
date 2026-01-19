@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git fetch:*)",
+      "Bash(bash:*)",
+      "Bash(npx create-docusaurus@3:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(git --version:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git remote:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

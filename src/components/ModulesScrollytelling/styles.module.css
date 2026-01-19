@@ -1,0 +1,226 @@
+.scrollSection {
+  padding: 4rem 2rem;
+  background: var(--ifm-background-color);
+  min-height: 100vh;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 4rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.sectionTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--ifm-heading-color);
+}
+
+.sectionSubtitle {
+  font-size: 1.2rem;
+  color: var(--ifm-color-emphasis-700);
+  line-height: 1.6;
+}
+
+.modulesContainer {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Module Card Styles */
+.moduleCard {
+  display: flex;
+  background: var(--module-card-bg);
+  border-radius: 16px;
+  box-shadow: var(--module-card-shadow);
+  border: 1px solid var(--module-card-border);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: var(--delay, 0s);
+}
+
+.moduleCard.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.moduleCard:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+}
+
+.moduleNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100px;
+  background: var(--module-color);
+  color: white;
+  font-size: 3rem;
+  font-weight: 700;
+}
+
+.moduleContent {
+  flex: 1;
+  padding: 2rem;
+}
+
+.moduleWeeks {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--module-color);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.5rem;
+}
+
+.moduleTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+  color: var(--ifm-heading-color);
+}
+
+.moduleSubtitle {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--module-color);
+  margin: 0 0 1rem 0;
+}
+
+.moduleDescription {
+  font-size: 1rem;
+  color: var(--ifm-color-emphasis-700);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.moduleLink {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  color: var(--module-color);
+  font-weight: 600;
+  text-decoration: none;
+  border: 2px solid var(--module-color);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.moduleLink:hover {
+  background: var(--module-color);
+  color: white;
+  text-decoration: none;
+}
+
+/* CTA Section */
+.ctaSection {
+  text-align: center;
+  margin-top: 4rem;
+}
+
+.ctaButton {
+  display: inline-block;
+  padding: 1rem 2.5rem;
+  background: var(--ifm-color-primary);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.ctaButton:hover {
+  background: var(--ifm-color-primary-dark);
+  color: white;
+  text-decoration: none;
+  transform: translateY(-2px);
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .scrollSection {
+    padding: 3rem 1rem;
+  }
+
+  .sectionTitle {
+    font-size: 2rem;
+  }
+
+  .sectionSubtitle {
+    font-size: 1rem;
+  }
+
+  .moduleCard {
+    flex-direction: column;
+  }
+
+  .moduleNumber {
+    min-width: auto;
+    min-height: 80px;
+    font-size: 2.5rem;
+  }
+
+  .moduleContent {
+    padding: 1.5rem;
+  }
+
+  .moduleTitle {
+    font-size: 1.25rem;
+  }
+
+  .moduleSubtitle {
+    font-size: 1rem;
+  }
+
+  .moduleDescription {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .scrollSection {
+    padding: 2rem 1rem;
+  }
+
+  .sectionHeader {
+    margin-bottom: 2rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.75rem;
+  }
+
+  .modulesContainer {
+    gap: 1.5rem;
+  }
+
+  .moduleNumber {
+    min-height: 60px;
+    font-size: 2rem;
+  }
+
+  .moduleContent {
+    padding: 1rem;
+  }
+
+  .moduleTitle {
+    font-size: 1.1rem;
+  }
+
+  .ctaButton {
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
+  }
+}

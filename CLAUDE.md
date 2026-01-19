@@ -208,3 +208,10 @@ Wait for consent; never auto-create ADRs. Group related decisions (stacks, authe
 
 ## Code Standards
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
+
+## Active Technologies
+- TypeScript 5.x, Node.js 18+ + Docusaurus 3.x, React 18.x, @easyops-cn/docusaurus-search-local, @docusaurus/plugin-ideal-image (001-docusaurus-setup)
+- N/A (static site, localStorage for theme preference) (001-docusaurus-setup)
+
+## Recent Changes
+- 001-docusaurus-setup: Added TypeScript 5.x, Node.js 18+ + Docusaurus 3.x, React 18.x, @easyops-cn/docusaurus-search-local, @docusaurus/plugin-ideal-image

@@ -1,0 +1,279 @@
+.coverSection {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: var(--cover-bg);
+  color: var(--cover-text);
+  padding: 2rem;
+  position: relative;
+}
+
+.coverContent {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 4rem;
+  max-width: var(--content-max-width);
+  width: 100%;
+}
+
+/* Book Visual Styles */
+.bookVisual {
+  perspective: 1000px;
+}
+
+.bookCover {
+  position: relative;
+  width: 280px;
+  height: 380px;
+  transform-style: preserve-3d;
+  transform: rotateY(-15deg);
+  transition: transform 0.5s ease;
+}
+
+.bookCover:hover {
+  transform: rotateY(-5deg);
+}
+
+.bookSpine {
+  position: absolute;
+  left: 0;
+  width: 30px;
+  height: 100%;
+  background: linear-gradient(90deg, #1a1a2e 0%, #2e8555 100%);
+  transform: rotateY(-90deg) translateX(-15px);
+  transform-origin: left;
+  border-radius: 3px 0 0 3px;
+}
+
+.bookFront {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(145deg, #1e3a5f 0%, #0d1b2a 100%);
+  border-radius: 0 8px 8px 0;
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  transform: translateZ(15px);
+}
+
+.bookTitle {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.titleLine1,
+.titleLine2,
+.titleLine3 {
+  display: block;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.titleLine1 {
+  font-size: 1.8rem;
+  color: #25c2a0;
+}
+
+.titleLine2 {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0.25rem 0;
+}
+
+.titleLine3 {
+  font-size: 1.6rem;
+  color: #ffffff;
+}
+
+.bookSubtitle {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Hero Text Styles */
+.heroText {
+  max-width: 500px;
+  text-align: center;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #ffffff;
+}
+
+.tagline {
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.primaryButton {
+  display: inline-block;
+  padding: 0.875rem 2rem;
+  background: #25c2a0;
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.primaryButton:hover {
+  background: #1fa588;
+  color: #ffffff;
+  text-decoration: none;
+  transform: translateY(-2px);
+}
+
+.secondaryButton {
+  display: inline-block;
+  padding: 0.875rem 2rem;
+  background: transparent;
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.2s ease;
+}
+
+.secondaryButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  text-decoration: none;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Scroll Indicator */
+.scrollIndicator {
+  position: absolute;
+  bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  animation: bounce 2s infinite;
+}
+
+.scrollArrow {
+  width: 20px;
+  height: 20px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  margin-top: 0.5rem;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Responsive Styles */
+@media (max-width: 996px) {
+  .coverContent {
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .bookCover {
+    width: 220px;
+    height: 300px;
+    transform: rotateY(0);
+  }
+
+  .bookCover:hover {
+    transform: rotateY(0);
+  }
+
+  .titleLine1 {
+    font-size: 1.4rem;
+  }
+
+  .titleLine3 {
+    font-size: 1.2rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .tagline {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .coverSection {
+    padding: 1rem;
+    min-height: 90vh;
+  }
+
+  .bookCover {
+    width: 180px;
+    height: 250px;
+  }
+
+  .titleLine1 {
+    font-size: 1.1rem;
+  }
+
+  .titleLine3 {
+    font-size: 1rem;
+  }
+
+  .bookSubtitle {
+    font-size: 0.7rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .tagline {
+    font-size: 1rem;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .scrollIndicator {
+    font-size: 0.8rem;
+  }
+}
