@@ -250,6 +250,24 @@ In the next chapter, you will learn about [topic] which builds on [concept from 
 - Document common errors and solutions
 - Label conceptual/partial code explicitly: `[Conceptual]` or `[Partial]`
 
+**Code Snippet Style (MANDATORY):**
+- Use **concise code snippets** - show only the relevant lines to illustrate the concept
+- Avoid long boilerplate code; focus on the key logic
+- Full complete files ONLY in exercises or when absolutely necessary
+- Inline snippets should be 5-15 lines maximum
+- Example of good concise style:
+  ```python
+  # Create a publisher on 'sensor_data' topic
+  self.publisher_ = self.create_publisher(String, 'sensor_data', 10)
+
+  # Publish a message
+  msg = String()
+  msg.data = 'Hello'
+  self.publisher_.publish(msg)
+  ```
+- Always include at least 1-2 inline comments explaining key logic
+- Show bash commands with expected output on same block when possible
+
 **Accessibility (MANDATORY):**
 - Alt-text for all images: `![Alt text description](image.png)`
 - Semantic HTML in MDX components
