@@ -1,0 +1,133 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Docusaurus Sidebar Configuration",
+  "description": "Schema for sidebars.js navigation structure",
+  "type": "object",
+  "properties": {
+    "docs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/SidebarItem"
+      },
+      "description": "Main documentation sidebar"
+    }
+  },
+  "definitions": {
+    "SidebarItem": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Simple doc ID reference"
+        },
+        {
+          "$ref": "#/definitions/CategoryItem"
+        },
+        {
+          "$ref": "#/definitions/DocItem"
+        },
+        {
+          "$ref": "#/definitions/LinkItem"
+        }
+      ]
+    },
+    "CategoryItem": {
+      "type": "object",
+      "required": ["type", "label", "items"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "category"
+        },
+        "label": {
+          "type": "string",
+          "description": "Display label for the category"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SidebarItem"
+          }
+        },
+        "collapsed": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether category is collapsed by default"
+        },
+        "collapsible": {
+          "type": "boolean",
+          "default": true
+        },
+        "link": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["doc", "generated-index"]
+            },
+            "id": {
+              "type": "string",
+              "description": "Doc ID for category landing page"
+            }
+          }
+        }
+      }
+    },
+    "DocItem": {
+      "type": "object",
+      "required": ["type", "id"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "doc"
+        },
+        "id": {
+          "type": "string",
+          "description": "Document ID (path without extension)"
+        },
+        "label": {
+          "type": "string",
+          "description": "Override display label"
+        }
+      }
+    },
+    "LinkItem": {
+      "type": "object",
+      "required": ["type", "label", "href"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "link"
+        },
+        "label": {
+          "type": "string"
+        },
+        "href": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "docs": [
+        "intro",
+        {
+          "type": "category",
+          "label": "Module 1: ROS 2",
+          "collapsed": false,
+          "link": {
+            "type": "doc",
+            "id": "module-1-ros2/index"
+          },
+          "items": [
+            "module-1-ros2/01-nodes-topics",
+            "module-1-ros2/02-services-actions",
+            "module-1-ros2/03-rclpy",
+            "module-1-ros2/04-urdf"
+          ]
+        }
+      ]
+    }
+  ]
+}

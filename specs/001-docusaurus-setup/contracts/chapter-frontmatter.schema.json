@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Chapter Frontmatter",
+  "description": "Required YAML frontmatter for all MDX chapter files",
+  "type": "object",
+  "required": ["sidebar_position", "title", "description", "keywords"],
+  "properties": {
+    "sidebar_position": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Position in sidebar navigation"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 100,
+      "description": "Chapter title"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 100,
+      "maxLength": 160,
+      "description": "SEO meta description (150-160 chars optimal)"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 3,
+      "description": "SEO keywords for the chapter"
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "URL slug override (optional)"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Optional tags for categorization"
+    },
+    "hide_title": {
+      "type": "boolean",
+      "default": false,
+      "description": "Hide the title in the page content"
+    },
+    "hide_table_of_contents": {
+      "type": "boolean",
+      "default": false,
+      "description": "Hide the right-side table of contents"
+    },
+    "draft": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mark as draft (excluded from production build)"
+    },
+    "last_update": {
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "author": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "sidebar_position": 1,
+      "title": "ROS 2 Nodes and Topics",
+      "description": "Learn the fundamentals of ROS 2 communication through nodes and topics. This chapter covers publishers, subscribers, and message passing in robotics applications.",
+      "keywords": ["ROS 2", "nodes", "topics", "publisher", "subscriber", "robotics"]
+    }
+  ]
+}
