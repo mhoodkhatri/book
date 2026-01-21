@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git fetch:*)",
+      "Bash(bash:*)",
+      "Bash(npx create-docusaurus@3:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(git --version:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git remote:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat\\(docs\\): initialize Docusaurus site for robotics textbook\n\nSet up complete Docusaurus 3.x documentation platform with:\n- Four-module curriculum structure \\(ROS2, Simulation, NVIDIA Isaac, VLA\\)\n- Custom React components \\(CoverSection, ModulesScrollytelling\\)\n- GitHub Actions deployment workflow\n- Local search and image optimization plugins\n- Hardware requirements and appendix sections\n- Project specifications and task tracking\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(gh repo view:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(gh repo edit:*)",
+      "Bash(gh pr create:*)",
+      "Bash(ls:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(cd:*)",
+      "Skill(sp.write-chapter)",
+      "Bash(grep:*)"
+    ]
+  }
+}
