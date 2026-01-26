@@ -117,6 +117,8 @@ A visitor who is not signed in attempts to use the RAG chatbot or translation fe
   - They are treated as unauthenticated and must sign in again.
 - What happens during network interruption while signing in?
   - Show appropriate error message and allow retry.
+- What happens when the Neon database is unavailable?
+  - Graceful degradation: existing authenticated sessions continue working (session validated from cache/token); new sign-up and sign-in operations show "Service temporarily unavailable. Please try again shortly." and are blocked until database recovers.
 
 ## Requirements *(mandatory)*
 
@@ -137,12 +139,16 @@ A visitor who is not signed in attempts to use the RAG chatbot or translation fe
 - **FR-013**: System MUST provide clear error messages for authentication failures without leaking sensitive information.
 - **FR-014**: System MUST sanitize all user inputs to prevent injection attacks.
 - **FR-015**: System MUST never commit API keys or secrets; use environment variables.
+- **FR-016**: System MUST log authentication events (sign-in, sign-out, failures) with timestamps and user identifiers for security audit trail.
+- **FR-017**: System MUST set session expiration to 7 days from last activity, refreshing on each authenticated request.
+- **FR-018**: System MUST gracefully degrade when database is unavailable: existing sessions continue via token validation; new auth operations show friendly error.
+- **FR-019**: System MUST enforce password requirements: minimum 8 characters, at least 1 uppercase letter, at least 1 number.
 
 ### Key Entities
 
 - **User**: Represents an authenticated user. Key attributes: unique identifier, email, hashed password, creation timestamp, last login timestamp.
 - **UserProfile**: Stores user background information. Key attributes: user reference, background type (enum), creation timestamp, update timestamp.
-- **Session**: Represents an active user session. Key attributes: session token, user reference, expiration timestamp, creation timestamp.
+- **Session**: Represents an active user session. Key attributes: session token, user reference, expiration timestamp (7 days from last activity), creation timestamp, last activity timestamp. Session extends on each authenticated request.
 
 ## Success Criteria *(mandatory)*
 
@@ -158,6 +164,15 @@ A visitor who is not signed in attempts to use the RAG chatbot or translation fe
 - **SC-008**: Authentication state transitions (sign-in, sign-out) reflect in UI within 1 second.
 - **SC-009**: Zero API keys or secrets appear in committed code.
 - **SC-010**: User background data is successfully stored and retrievable for 100% of signups.
+
+## Clarifications
+
+### Session 2026-01-26
+
+- Q: What level of authentication logging should be implemented? → A: Production logging (sign-in/out events + errors) - Audit trail for security
+- Q: What should the session timeout duration be? → A: 7 days with activity refresh - Extends on each request, expires after 7 days idle
+- Q: How should the system behave when Neon database is unavailable? → A: Graceful degradation - Allow existing sessions to continue; block new sign-up/sign-in with friendly error
+- Q: What password strength requirements should be enforced? → A: Standard (8+ chars, 1 uppercase, 1 number) - Balanced security/usability
 
 ## Assumptions
 

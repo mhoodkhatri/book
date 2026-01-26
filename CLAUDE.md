@@ -216,6 +216,8 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - N/A (static content, no database for content itself) (002-book-content)
 - Python 3.10+ (backend), TypeScript 5.6.2 (frontend) + FastAPI, Better-Auth (JS), PyJWT (Python), React 19.x, Docusaurus 3.9.2 (004-better-auth)
 - Neon Serverless Postgres (users, profiles, sessions) (004-better-auth)
+- TypeScript 5.6.2 (frontend), Python 3.10+ (backend) + Better-Auth ^1.4.6, React 19.x, FastAPI ^0.109.0, PyJWT ^2.8.0, psycopg2-binary ^2.9.9 (004-better-auth)
+- Neon Serverless Postgres (users, sessions, user_profile tables) (004-better-auth)
 
 ## Recent Changes
 - 001-docusaurus-setup: Added TypeScript 5.x, Node.js 18+ + Docusaurus 3.x, React 18.x, @easyops-cn/docusaurus-search-local, @docusaurus/plugin-ideal-image
