@@ -14,6 +14,11 @@ const config: Config = {
   url: 'https://your-username.github.io',
   baseUrl: '/book/',
 
+  // Custom fields for chat API
+  customFields: {
+    chatApiUrl: process.env.CHAT_API_URL || 'http://localhost:8000',
+  },
+
   organizationName: 'your-username',
   projectName: 'book',
 
@@ -85,7 +90,7 @@ const config: Config = {
           label: 'Textbook',
         },
         {
-          href: 'https://github.com/your-username/book',
+          href: 'https://github.com/mhoodkhatri/book',
           label: 'GitHub',
           position: 'right',
         },
@@ -133,7 +138,7 @@ const config: Config = {
             },
             {
               label: 'GitHub',
-              href: 'https://github.com/your-username/book',
+              href: 'https://github.com/mhoodkhatri/book',
             },
           ],
         },
