@@ -1,0 +1,427 @@
+openapi: 3.1.0
+info:
+  title: Better-Auth Authentication API
+  description: |
+    Authentication endpoints for the Physical AI Textbook platform.
+    Uses Better-Auth with JWT tokens for FastAPI backend integration.
+  version: 1.0.0
+  contact:
+    name: Physical AI Textbook Team
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.example.com
+    description: Production server
+
+tags:
+  - name: auth
+    description: Authentication endpoints (Better-Auth)
+  - name: protected
+    description: Protected API endpoints requiring authentication
+
+paths:
+  /api/auth/signup:
+    post:
+      tags: [auth]
+      summary: Create new user account
+      description: |
+        Register a new user with email, password, and background selection.
+        On success, returns JWT token and user info.
+      operationId: signUp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpRequest'
+            example:
+              email: "student@example.com"
+              password: "securePassword123"
+              name: "John Doe"
+              backgroundType: "beginner_robotics"
+      responses:
+        '201':
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid request (validation error)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "validation_error"
+                message: "Email already exists"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/signin:
+    post:
+      tags: [auth]
+      summary: Sign in existing user
+      description: |
+        Authenticate with email and password.
+        Returns JWT token on success.
+      operationId: signIn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInRequest'
+            example:
+              email: "student@example.com"
+              password: "securePassword123"
+      responses:
+        '200':
+          description: Sign in successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "invalid_credentials"
+                message: "Invalid credentials"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/signout:
+    post:
+      tags: [auth]
+      summary: Sign out current user
+      description: |
+        Invalidate current session.
+        Requires valid JWT token.
+      operationId: signOut
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Sign out successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/session:
+    get:
+      tags: [auth]
+      summary: Get current session
+      description: |
+        Validate token and return current user info.
+        Used to check authentication state.
+      operationId: getSession
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Session valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          description: Session invalid or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "unauthorized"
+                message: "Session expired"
+
+  /api/auth/profile:
+    get:
+      tags: [auth]
+      summary: Get user profile
+      description: |
+        Get current user's profile including background type.
+      operationId: getProfile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profile retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/chat:
+    post:
+      tags: [protected]
+      summary: RAG Chat (protected)
+      description: |
+        Chapter-aware RAG chatbot endpoint.
+        **Requires authentication.**
+      operationId: chat
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Streaming chat response (SSE)
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: Server-Sent Events stream
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "unauthorized"
+                message: "Please sign in first to use this feature."
+
+  /api/translate:
+    post:
+      tags: [protected]
+      summary: Translate content (protected)
+      description: |
+        Translate chapter content to target language.
+        **Requires authentication.**
+      operationId: translate
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranslateRequest'
+      responses:
+        '200':
+          description: Streaming translation response (SSE)
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: Server-Sent Events stream
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "unauthorized"
+                message: "Please sign in first to use this feature."
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from /api/auth/signin or /api/auth/signup
+
+  schemas:
+    SignUpRequest:
+      type: object
+      required:
+        - email
+        - password
+        - backgroundType
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          description: User email address
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+          description: Account password (min 8 characters)
+        name:
+          type: string
+          maxLength: 100
+          description: Display name (optional)
+        backgroundType:
+          $ref: '#/components/schemas/BackgroundType'
+
+    SignInRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        token:
+          type: string
+          description: JWT access token
+        expiresAt:
+          type: string
+          format: date-time
+          description: Token expiration time
+
+    SessionResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        profile:
+          $ref: '#/components/schemas/UserProfile'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique user identifier
+        email:
+          type: string
+          format: email
+        emailVerified:
+          type: boolean
+        name:
+          type: string
+          nullable: true
+        image:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        backgroundType:
+          $ref: '#/components/schemas/BackgroundType'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    BackgroundType:
+      type: string
+      enum:
+        - beginner_robotics
+        - experienced_programmer
+        - ai_ml_background
+        - hardware_electronics
+      description: |
+        User's technical background:
+        - beginner_robotics: Beginner in robotics
+        - experienced_programmer: Experienced programmer
+        - ai_ml_background: AI/ML background
+        - hardware_electronics: Hardware/electronics background
+
+    ChatRequest:
+      type: object
+      required:
+        - messages
+        - chapterId
+        - chapterTitle
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+        chapterId:
+          type: string
+          description: Current chapter identifier
+        chapterTitle:
+          type: string
+          description: Current chapter title
+        selectedText:
+          type: string
+          nullable: true
+          description: User-selected text for context
+
+    Message:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+
+    TranslateRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          description: Content to translate
+        targetLanguage:
+          type: string
+          default: urdu
+          description: Target language
+        chapterTitle:
+          type: string
+          description: Chapter title for context
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message

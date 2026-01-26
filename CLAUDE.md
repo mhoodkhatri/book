@@ -214,6 +214,8 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - N/A (static site, localStorage for theme preference) (001-docusaurus-setup)
 - MDX (Markdown with JSX), Python 3.10+ (code examples targeting ROS 2 Humble), C++ (where applicable), Bash, YAML, CMake + Docusaurus 3.x (documentation framework), ROS 2 Humble (Humble Hawksbill LTS), Gazebo Fortress, NVIDIA Isaac Sim 2023.x, OpenAI Whisper, LangChain/LlamaIndex (LLM integration) (002-book-content)
 - N/A (static content, no database for content itself) (002-book-content)
+- Python 3.10+ (backend), TypeScript 5.6.2 (frontend) + FastAPI, Better-Auth (JS), PyJWT (Python), React 19.x, Docusaurus 3.9.2 (004-better-auth)
+- Neon Serverless Postgres (users, profiles, sessions) (004-better-auth)
 
 ## Recent Changes
 - 001-docusaurus-setup: Added TypeScript 5.x, Node.js 18+ + Docusaurus 3.x, React 18.x, @easyops-cn/docusaurus-search-local, @docusaurus/plugin-ideal-image
