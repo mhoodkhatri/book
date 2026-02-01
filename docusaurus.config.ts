@@ -14,9 +14,10 @@ const config: Config = {
   url: 'https://your-username.github.io',
   baseUrl: '/book/',
 
-  // Custom fields for chat API
+  // Custom fields for chat API and auth
   customFields: {
     chatApiUrl: process.env.CHAT_API_URL || 'http://localhost:8000',
+    authApiUrl: process.env.AUTH_API_URL || 'http://localhost:3005',
   },
 
   organizationName: 'your-username',

@@ -1,0 +1,116 @@
+openapi: 3.1.0
+info:
+  title: FastAPI Protected Endpoints (Auth Middleware)
+  description: |
+    Documents how existing FastAPI endpoints are modified to require authentication.
+    FastAPI validates sessions by querying the shared Neon Postgres `session` table directly.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000
+    description: Local FastAPI backend
+
+paths:
+  /api/chat:
+    post:
+      summary: RAG Chatbot (now gated)
+      tags: [Gated Features]
+      description: |
+        Existing streaming chat endpoint. Now requires valid session cookie.
+        Returns 401 if unauthenticated.
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [messages, chapterId]
+              properties:
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        enum: [user, assistant]
+                      content:
+                        type: string
+                chapterId:
+                  type: string
+                chapterTitle:
+                  type: string
+      responses:
+        "200":
+          description: SSE stream of chat responses
+          content:
+            text/event-stream: {}
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/translate:
+    post:
+      summary: Chapter Translation (now gated)
+      tags: [Gated Features]
+      description: |
+        Existing translation endpoint. Now requires valid session cookie.
+        Returns 401 if unauthenticated.
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content, chapterId]
+              properties:
+                content:
+                  type: string
+                  description: HTML content to translate
+                chapterId:
+                  type: string
+      responses:
+        "200":
+          description: Translated content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  translatedContent:
+                    type: string
+                  chapterId:
+                    type: string
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: better-auth.session_token
+      description: |
+        Better-Auth session cookie. FastAPI validates by querying the shared
+        Neon Postgres `session` table:
+        SELECT s.*, u.* FROM session s JOIN "user" u ON s."userId" = u.id
+        WHERE s.token = $1 AND s."expiresAt" > NOW()
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        detail:
+          type: string
+          example: "Authentication required"
