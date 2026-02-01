@@ -1,0 +1,121 @@
+/* Translate Toggle Button */
+.translateButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.translateButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.translateButton:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+/* Active state (showing Urdu) */
+.translateButton.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.translateButton.active:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+/* Loading state */
+.translateButton.loading {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.icon {
+  font-size: 1.1rem;
+}
+
+.text {
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Error indicator */
+.errorDot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: #ef4444;
+  color: white;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: bold;
+  margin-left: 4px;
+}
+
+/* Urdu content styling */
+.urduContent {
+  font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Mehr Nastaliq', 'Nafees Nastaleeq', serif !important;
+  line-height: 2.2 !important;
+  text-align: right;
+}
+
+.urduContent h1,
+.urduContent h2,
+.urduContent h3,
+.urduContent h4,
+.urduContent h5,
+.urduContent h6 {
+  font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', serif !important;
+  text-align: right;
+}
+
+.urduContent p,
+.urduContent li,
+.urduContent td,
+.urduContent th {
+  text-align: right;
+}
+
+/* Keep code blocks LTR */
+.urduContent pre,
+.urduContent code {
+  direction: ltr !important;
+  text-align: left !important;
+  font-family: 'Fira Code', 'Monaco', 'Consolas', monospace !important;
+}
+
+.urduContent pre {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Tables in Urdu */
+.urduContent table {
+  direction: rtl;
+}
+
+.urduContent th,
+.urduContent td {
+  text-align: right;
+}
+
+/* Dark mode adjustments */
+[data-theme='dark'] .translateButton {
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+[data-theme='dark'] .translateButton.active {
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
