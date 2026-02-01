@@ -1,0 +1,475 @@
+openapi: 3.1.0
+info:
+  title: Better-Auth Authentication Service API
+  description: |
+    Authentication API for the Physical AI & Humanoid Robotics Textbook.
+    Better-Auth handles core auth routes automatically via `/api/auth/*`.
+    This contract documents both Better-Auth managed and custom endpoints.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3005
+    description: Local Better-Auth Express service
+  - url: https://auth.yourdomain.com
+    description: Production auth service
+
+paths:
+  # ============================================
+  # Better-Auth Managed Routes (auto-generated)
+  # These are handled by Better-Auth internally.
+  # Documented here for frontend reference.
+  # ============================================
+
+  /api/auth/sign-up/email:
+    post:
+      summary: Sign up with email and password
+      tags: [Authentication]
+      description: |
+        Creates a new unverified account. Sends verification email via Brevo.
+        Email is normalized to lowercase before storage.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                  example: "Jane Doe"
+                email:
+                  type: string
+                  format: email
+                  example: "jane@example.com"
+                password:
+                  type: string
+                  minLength: 8
+                  maxLength: 128
+                  example: "SecureP@ss1"
+                softwareBackground:
+                  type: array
+                  items:
+                    type: string
+                  example: ["Python", "ROS 2"]
+                hardwareBackground:
+                  type: array
+                  items:
+                    type: string
+                  example: ["Jetson Orin"]
+      responses:
+        "200":
+          description: Account created, verification email sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "422":
+          description: Validation error (weak password, invalid email)
+        "409":
+          description: Email already registered
+
+  /api/auth/sign-in/email:
+    post:
+      summary: Sign in with email and password
+      tags: [Authentication]
+      description: |
+        Authenticates user and creates a session. Sets session cookie.
+        Checks account lockout before validating credentials.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                rememberMe:
+                  type: boolean
+                  default: false
+                  description: "If true, session lasts 30 days instead of 30 minutes"
+      responses:
+        "200":
+          description: Signed in, session cookie set
+          headers:
+            Set-Cookie:
+              description: "better-auth.session_token cookie"
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: "Invalid email or password (generic, FR-005)"
+        "403":
+          description: "Account locked (FR-006) or email not verified"
+        "429":
+          description: "Rate limited"
+
+  /api/auth/sign-out:
+    post:
+      summary: Sign out and invalidate session
+      tags: [Authentication]
+      description: Invalidates the current session. Clears session cookie.
+      responses:
+        "200":
+          description: Signed out successfully
+
+  /api/auth/get-session:
+    get:
+      summary: Get current session
+      tags: [Session]
+      description: Returns current user and session data if authenticated.
+      responses:
+        "200":
+          description: Session data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionResponse"
+        "401":
+          description: Not authenticated
+
+  /api/auth/forget-password:
+    post:
+      summary: Request password reset email
+      tags: [Password]
+      description: |
+        Sends password reset email. Always returns 200 regardless of email existence (FR-026).
+        Reset link expires in 1 hour (FR-016).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                redirectTo:
+                  type: string
+                  description: URL to redirect after password reset
+      responses:
+        "200":
+          description: "Reset email sent (or silently ignored if email not found)"
+
+  /api/auth/reset-password:
+    post:
+      summary: Reset password with token
+      tags: [Password]
+      description: |
+        Sets new password using reset token. Invalidates all existing sessions (FR-028).
+        Token is single-use (FR-017).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [newPassword, token]
+              properties:
+                newPassword:
+                  type: string
+                  minLength: 8
+                  maxLength: 128
+                token:
+                  type: string
+      responses:
+        "200":
+          description: Password reset, all sessions invalidated
+        "400":
+          description: Invalid or expired token
+
+  /api/auth/verify-email:
+    get:
+      summary: Verify email address
+      tags: [Authentication]
+      description: |
+        Verifies user email via token in query string. Token expires in 24h (FR-016).
+        Single-use (FR-017). Redirects to background capture form after verification.
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirects to background capture page on success
+        "400":
+          description: Invalid or expired token
+
+  /api/auth/send-verification-email:
+    post:
+      summary: Resend verification email
+      tags: [Authentication]
+      description: |
+        Resends verification email. 60-second cooldown enforced (FR-015).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        "200":
+          description: Verification email sent
+        "429":
+          description: Cooldown active (60 seconds)
+
+  # ============================================
+  # Custom Endpoints (not managed by Better-Auth)
+  # ============================================
+
+  /api/auth/custom/update-background:
+    post:
+      summary: Update user background profile
+      tags: [Profile]
+      description: |
+        Updates the user's software/hardware background. Requires authentication.
+        Can be called during onboarding or from account settings.
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BackgroundUpdateRequest"
+      responses:
+        "200":
+          description: Background updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Not authenticated
+
+  /api/auth/custom/delete-account:
+    post:
+      summary: Delete user account
+      tags: [Account]
+      description: |
+        Soft-deletes account after password confirmation (FR-029).
+        Anonymizes data and invalidates all sessions (FR-030).
+        Email can be re-used after 24h (FR-031).
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password:
+                  type: string
+                  description: Current password for confirmation
+      responses:
+        "200":
+          description: Account deleted, sessions invalidated
+        "401":
+          description: Not authenticated or wrong password
+
+  /api/auth/custom/audit-log:
+    get:
+      summary: Get authentication audit log (admin)
+      tags: [Admin]
+      description: Returns recent auth events for the current user.
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Audit log entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AuditEvent"
+                  total:
+                    type: integer
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: better-auth.session_token
+      description: Better-Auth session cookie (HttpOnly, Secure, SameSite=None)
+
+  schemas:
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        session:
+          $ref: "#/components/schemas/Session"
+
+    SessionResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        session:
+          $ref: "#/components/schemas/Session"
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        emailVerified:
+          type: boolean
+        image:
+          type: string
+          nullable: true
+        softwareBackground:
+          type: array
+          items:
+            type: string
+        hardwareBackground:
+          type: array
+          items:
+            type: string
+        softwareOther:
+          type: string
+          nullable: true
+        hardwareOther:
+          type: string
+          nullable: true
+        backgroundCompleted:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Session:
+      type: object
+      properties:
+        id:
+          type: string
+        token:
+          type: string
+        userId:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+
+    BackgroundUpdateRequest:
+      type: object
+      properties:
+        softwareBackground:
+          type: array
+          items:
+            type: string
+            enum:
+              - Python
+              - ROS 2
+              - C++
+              - JavaScript
+              - MATLAB
+              - Bash/Shell
+          description: Selected software skills
+        hardwareBackground:
+          type: array
+          items:
+            type: string
+            enum:
+              - Jetson Orin
+              - Desktop Workstation
+              - Laptop
+              - Raspberry Pi
+              - Cloud/VM
+          description: Selected hardware setup
+        softwareOther:
+          type: string
+          maxLength: 255
+          description: Free-text for other software
+        hardwareOther:
+          type: string
+          maxLength: 255
+          description: Free-text for other hardware
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        softwareBackground:
+          type: array
+          items:
+            type: string
+        hardwareBackground:
+          type: array
+          items:
+            type: string
+        softwareOther:
+          type: string
+          nullable: true
+        hardwareOther:
+          type: string
+          nullable: true
+        backgroundCompleted:
+          type: boolean
+
+    AuditEvent:
+      type: object
+      properties:
+        id:
+          type: integer
+        eventType:
+          type: string
+          enum: [signup, login, logout, password_reset, account_delete, email_verify, login_failed, lockout]
+        ipAddress:
+          type: string
+          nullable: true
+        success:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time

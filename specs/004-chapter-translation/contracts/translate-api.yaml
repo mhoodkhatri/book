@@ -1,0 +1,231 @@
+openapi: 3.1.0
+info:
+  title: Chapter Translation API
+  description: API for translating book chapter content from English to Urdu
+  version: 1.0.0
+  contact:
+    name: Book RAG Team
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.example.com
+    description: Production server (placeholder)
+
+paths:
+  /api/translate:
+    post:
+      operationId: translateChapter
+      summary: Translate chapter content to Urdu
+      description: |
+        Accepts HTML chapter content in English and returns the translated
+        Urdu version. Code blocks and technical terms are preserved in English.
+      tags:
+        - Translation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranslationRequest'
+            examples:
+              basicChapter:
+                summary: Simple chapter translation
+                value:
+                  chapter_id: "module-1-ros2/nodes-topics"
+                  chapter_title: "Nodes and Topics"
+                  content: "<h1>Nodes and Topics</h1><p>In ROS 2, nodes are...</p>"
+                  target_language: "urdu"
+      responses:
+        '200':
+          description: Translation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationResponse'
+              examples:
+                success:
+                  summary: Successful translation
+                  value:
+                    success: true
+                    chapter_id: "module-1-ros2/nodes-topics"
+                    translated_content: "<h1>نوڈز اور ٹاپکس</h1><p>ROS 2 میں، نوڈز ہیں...</p>"
+                    source_language: "english"
+                    target_language: "urdu"
+                    error: null
+                    metadata:
+                      tokens_used: 1234
+                      latency_ms: 3500
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingContent:
+                  summary: Content is required
+                  value:
+                    success: false
+                    error: "Content field is required"
+                    error_code: "INVALID_REQUEST"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '500':
+          description: Translation service error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                llmError:
+                  summary: LLM service unavailable
+                  value:
+                    success: false
+                    error: "Translation service temporarily unavailable"
+                    error_code: "SERVICE_ERROR"
+        '504':
+          description: Translation timeout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                timeout:
+                  summary: Translation timed out
+                  value:
+                    success: false
+                    error: "Translation request timed out. Try a shorter chapter."
+                    error_code: "TIMEOUT"
+
+components:
+  schemas:
+    TranslationRequest:
+      type: object
+      required:
+        - chapter_id
+        - chapter_title
+        - content
+      properties:
+        chapter_id:
+          type: string
+          description: Unique chapter identifier from Docusaurus
+          example: "module-1-ros2/nodes-topics"
+          minLength: 1
+          maxLength: 255
+        chapter_title:
+          type: string
+          description: Human-readable chapter title
+          example: "Nodes and Topics"
+          minLength: 1
+          maxLength: 500
+        content:
+          type: string
+          description: HTML content to translate
+          minLength: 1
+          maxLength: 500000
+        target_language:
+          type: string
+          description: Target language code
+          enum: ["urdu", "ur"]
+          default: "urdu"
+
+    TranslationResponse:
+      type: object
+      required:
+        - success
+        - chapter_id
+      properties:
+        success:
+          type: boolean
+          description: Whether translation succeeded
+        chapter_id:
+          type: string
+          description: Chapter identifier (echoed from request)
+        translated_content:
+          type: string
+          nullable: true
+          description: Translated HTML content (null on error)
+        source_language:
+          type: string
+          default: "english"
+          description: Source language of content
+        target_language:
+          type: string
+          default: "urdu"
+          description: Target language of translation
+        error:
+          type: string
+          nullable: true
+          description: Error message if translation failed
+        metadata:
+          type: object
+          nullable: true
+          description: Additional metadata
+          properties:
+            tokens_used:
+              type: integer
+              description: Total tokens consumed by LLM
+            latency_ms:
+              type: integer
+              description: Processing time in milliseconds
+            model:
+              type: string
+              description: LLM model used for translation
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          enum: [false]
+        error:
+          type: string
+          description: Human-readable error message
+        error_code:
+          type: string
+          description: Machine-readable error code
+          enum:
+            - INVALID_REQUEST
+            - SERVICE_ERROR
+            - TIMEOUT
+            - RATE_LIMITED
+
+    ValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  oneOf:
+                    - type: string
+                    - type: integer
+              msg:
+                type: string
+              type:
+                type: string
+
+  securitySchemes:
+    # Currently no authentication required (internal service)
+    # Future: Add API key or JWT authentication
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Optional API key for rate limiting
+
+tags:
+  - name: Translation
+    description: Chapter translation operations

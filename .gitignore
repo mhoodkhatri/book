@@ -62,3 +62,8 @@ env/
 # Backend specific
 backend/.env
 backend/*.db
+
+# Auth service
+auth-service/node_modules/
+auth-service/.env
+auth-service/dist/

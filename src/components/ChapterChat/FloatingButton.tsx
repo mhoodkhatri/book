@@ -1,6 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { ChapterChat } from './index';
 import { TextSelectionPopup } from './TextSelectionPopup';
+import { useAuthGuard } from '@site/src/hooks/useAuthGuard';
+import LockedFeatureModal from '@site/src/components/Auth/LockedFeatureModal';
 import styles from './styles.module.css';
 
 interface FloatingChatButtonProps {
@@ -12,10 +14,16 @@ export function FloatingChatButton({
   chapterId,
   chapterTitle,
 }: FloatingChatButtonProps): React.JSX.Element {
+  const { isAuthenticated, loginUrl } = useAuthGuard();
   const [isOpen, setIsOpen] = useState(false);
+  const [showLockedModal, setShowLockedModal] = useState(false);
   const [initialMessage, setInitialMessage] = useState<string | null>(null);
 
   const toggleChat = () => {
+    if (!isAuthenticated) {
+      setShowLockedModal(true);
+      return;
+    }
     setIsOpen((prev) => !prev);
     // Clear initial message when manually toggling
     if (isOpen) {
@@ -49,10 +57,13 @@ export function FloatingChatButton({
         title={isOpen ? 'Close chat' : 'Ask about this chapter'}
       >
         {isOpen ? '\u2715' : '\uD83D\uDCAC'}
+        {!isAuthenticated && !isOpen && (
+          <span className={styles.lockBadge}>🔒</span>
+        )}
       </button>
 
       {/* Chat Panel */}
-      {isOpen && (
+      {isOpen && isAuthenticated && (
         <div className={styles.chatPanel}>
           <ChapterChat
             chapterId={chapterId}
@@ -62,6 +73,13 @@ export function FloatingChatButton({
           />
         </div>
       )}
+
+      <LockedFeatureModal
+        isOpen={showLockedModal}
+        onClose={() => setShowLockedModal(false)}
+        featureName="AI Chatbot"
+        loginUrl={loginUrl}
+      />
     </>
   );
 }
