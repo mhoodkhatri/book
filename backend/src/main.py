@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.config import get_settings
-from src.api import chat, chapters, index
+from src.api import chat, chapters, index, translate
 
 # Create FastAPI app
 app = FastAPI(
@@ -27,6 +27,7 @@ app.add_middleware(
 app.include_router(chat.router, tags=["chat"])
 app.include_router(chapters.router, tags=["chapters"])
 app.include_router(index.router, tags=["index"])
+app.include_router(translate.router, tags=["translate"])
 
 
 @app.get("/")
