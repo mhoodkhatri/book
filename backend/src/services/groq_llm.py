@@ -56,6 +56,8 @@ class GroqService:
         self,
         system_prompt: str,
         messages: list[dict],
+        max_tokens: int = 2048,
+        temperature: float = 0.7,
     ) -> str:
         """
         Generate a complete response (non-streaming).
@@ -63,6 +65,8 @@ class GroqService:
         Args:
             system_prompt: The system instructions including RAG context
             messages: Conversation history
+            max_tokens: Maximum tokens in the response
+            temperature: Sampling temperature
 
         Returns:
             Complete response text
@@ -78,8 +82,8 @@ class GroqService:
         response = self.client.chat.completions.create(
             model=self.model,
             messages=groq_messages,
-            temperature=0.7,
-            max_tokens=2048,
+            temperature=temperature,
+            max_tokens=max_tokens,
         )
 
         return response.choices[0].message.content

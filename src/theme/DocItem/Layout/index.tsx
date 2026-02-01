@@ -4,6 +4,7 @@ import type LayoutType from '@theme/DocItem/Layout';
 import type { WrapperProps } from '@docusaurus/types';
 import { useDoc } from '@docusaurus/plugin-content-docs/client';
 import { FloatingChatButton } from '@site/src/components/ChapterChat/FloatingButton';
+import TranslationButton from '@site/src/components/ChapterTranslation/TranslationButton';
 
 type Props = WrapperProps<typeof LayoutType>;
 
@@ -24,6 +25,7 @@ export default function LayoutWrapper(props: Props): React.JSX.Element {
   return (
     <>
       <Layout {...props} />
+      <TranslationButton chapterId={chapterId} chapterTitle={chapterTitle} />
       <FloatingChatButton
         chapterId={chapterId}
         chapterTitle={chapterTitle}

@@ -1,0 +1,126 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 380px;
+  width: 90%;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  animation: scaleIn 0.2s ease-out;
+}
+
+.lockIcon {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: #1a1a1a;
+}
+
+.description {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.signInButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  background: var(--ifm-color-primary, #2196f3);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  text-decoration: none;
+}
+
+.signInButton:hover {
+  background: var(--ifm-color-primary-dark, #1976d2);
+  transform: translateY(-1px);
+  color: #fff;
+  text-decoration: none;
+}
+
+.dismissButton {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #888;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+}
+
+.dismissButton:hover {
+  color: #555;
+  background: #f5f5f5;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Dark mode */
+[data-theme='dark'] .card {
+  background: #2d2d2d;
+}
+
+[data-theme='dark'] .title {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .description {
+  color: #aaa;
+}
+
+[data-theme='dark'] .dismissButton {
+  color: #999;
+}
+
+[data-theme='dark'] .dismissButton:hover {
+  color: #ccc;
+  background: #3a3a3a;
+}
