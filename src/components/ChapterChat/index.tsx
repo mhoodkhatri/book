@@ -71,6 +71,7 @@ export function ChapterChat({
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
           chapterId,
@@ -78,6 +79,10 @@ export function ChapterChat({
         }),
         signal: abortControllerRef.current.signal,
       });
+
+      if (response.status === 401) {
+        throw new Error('AUTH_REQUIRED');
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -127,7 +132,14 @@ export function ChapterChat({
       }
 
       console.error('Chat error:', err);
-      setError('Something went wrong. Please try again.');
+
+      if (err instanceof Error && err.message === 'AUTH_REQUIRED') {
+        // Session expired — preserve the query text and show auth message
+        setError('Your session has expired. Please sign in again to continue.');
+        // Keep the user message so it's not lost
+      } else {
+        setError('Something went wrong. Please try again.');
+      }
 
       // Remove the empty assistant message on error
       setMessages(prev => prev.filter(m => m.id !== assistantId));

@@ -3,10 +3,11 @@
 import json
 from typing import AsyncGenerator
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
 from src.models.chat import ChatRequest
+from src.middleware.auth import get_current_user
 from src.services.rag import get_rag_service
 from src.services.groq_llm import get_groq_service
 from src.services.prompts import get_prompt_builder
@@ -97,7 +98,7 @@ async def generate_sse_stream(
 
 
 @router.post("/api/chat")
-async def chat(request: ChatRequest):
+async def chat(request: ChatRequest, user: dict = Depends(get_current_user)):
     """
     Chat endpoint with streaming responses.
 
@@ -122,7 +123,7 @@ async def chat(request: ChatRequest):
 
 
 @router.post("/api/chat/sync")
-async def chat_sync(request: ChatRequest):
+async def chat_sync(request: ChatRequest, user: dict = Depends(get_current_user)):
     """
     Non-streaming chat endpoint for testing.
 

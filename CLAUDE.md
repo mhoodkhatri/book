@@ -214,10 +214,11 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - N/A (static site, localStorage for theme preference) (001-docusaurus-setup)
 - MDX (Markdown with JSX), Python 3.10+ (code examples targeting ROS 2 Humble), C++ (where applicable), Bash, YAML, CMake + Docusaurus 3.x (documentation framework), ROS 2 Humble (Humble Hawksbill LTS), Gazebo Fortress, NVIDIA Isaac Sim 2023.x, OpenAI Whisper, LangChain/LlamaIndex (LLM integration) (002-book-content)
 - N/A (static content, no database for content itself) (002-book-content)
-- Python 3.10+ (backend), TypeScript 5.6.2 (frontend) + FastAPI, Better-Auth (JS), PyJWT (Python), React 19.x, Docusaurus 3.9.2 (004-better-auth)
-- Neon Serverless Postgres (users, profiles, sessions) (004-better-auth)
-- TypeScript 5.6.2 (frontend), Python 3.10+ (backend) + Better-Auth ^1.4.6, React 19.x, FastAPI ^0.109.0, PyJWT ^2.8.0, psycopg2-binary ^2.9.9 (004-better-auth)
-- Neon Serverless Postgres (users, sessions, user_profile tables) (004-better-auth)
+- Python 3.10+ (backend), TypeScript 5.6 (frontend) + FastAPI, React 19, Docusaurus 3.9, Groq SDK, Google Generative AI (004-chapter-translation)
+- localStorage (browser-side caching), no backend persistence required (004-chapter-translation)
+- TypeScript 5.6 (frontend), Python 3.10+ (backend) + React 19, Docusaurus 3.9.2, FastAPI, Groq SDK, BeautifulSoup4 (004-chapter-translation)
+- TypeScript 5.6 (auth service + frontend), Python 3.10+ (FastAPI backend) + Better-Auth v1.4.x, Express, React 19, Docusaurus 3.9.2, FastAPI, pg (Node.js), asyncpg (Python) (005-better-auth)
+- Neon Serverless Postgres (shared between Better-Auth and FastAPI) (005-better-auth)
 
 ## Recent Changes
 - 001-docusaurus-setup: Added TypeScript 5.x, Node.js 18+ + Docusaurus 3.x, React 18.x, @easyops-cn/docusaurus-search-local, @docusaurus/plugin-ideal-image
