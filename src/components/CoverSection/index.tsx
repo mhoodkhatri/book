@@ -34,23 +34,27 @@ export function CoverSection(): JSX.Element {
             </a>
           </div>
 
-          {/* ── Trust / Social Proof ── */}
+          {/* ── Author Badge ── */}
           <div className={styles.trustSection}>
             <span className={styles.trustDivider} />
-            <div className={styles.trustInfo}>
-              <a
-                href="https://github.com/mhoodkhatri"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.authorLink}
-              >
-                <span className={styles.authorAvatar}>MH</span>
-              </a>
-              <div className={styles.trustText}>
-                <span className={styles.trustCount}>16,000+ professionals learning</span>
-                <span className={styles.trustLabel}>by Muhammad Hood</span>
+            <a
+              href="https://pk.linkedin.com/in/mhoodkhatri"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.authorLink}
+            >
+              <div className={styles.authorBadge}>
+                <span className={styles.authorBadgeLabel}>AUTHOR BY</span>
+                <div className={styles.authorBadgeInfo}>
+                  <img
+                    src={useBaseUrl('/img/author-hood.jpeg')}
+                    alt="Muhammad Hood"
+                    className={styles.authorAvatar}
+                  />
+                  <span className={styles.authorBadgeName}>Muhammad Hood</span>
+                </div>
               </div>
-            </div>
+            </a>
           </div>
         </div>
 

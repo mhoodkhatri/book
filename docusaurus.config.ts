@@ -88,7 +88,7 @@ const config: Config = {
           type: 'docSidebar',
           sidebarId: 'docs',
           position: 'left',
-          label: 'Textbook',
+          label: 'Start Reading',
         },
         {
           href: 'https://github.com/mhoodkhatri/book',
