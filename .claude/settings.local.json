@@ -48,7 +48,25 @@
       "WebFetch(domain:localhost)",
       "Bash(npx tsx:*)",
       "Bash(npx kill-port:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(gh api:*)",
+      "Bash(spec \")",
+      "Bash(npx playwright test --list)",
+      "Bash(dir /s /b \"C:\\\\Users\\\\Dell\\\\Desktop\\\\New folder \\(2\\)\\\\book-rag\\\\book\\\\e2e\")",
+      "Bash(npx playwright --version)",
+      "Bash(npx playwright test:*)",
+      "Bash(git -C \"C:\\\\Users\\\\Dell\\\\Desktop\\\\New folder \\(2\\)\\\\book\" branch --show-current)",
+      "Bash(npx docusaurus:*)",
+      "Bash(copy:*)",
+      "WebFetch(domain:humanoids.wiki)",
+      "WebFetch(domain:www.fftai.com)",
+      "Bash(ipconfig:*)",
+      "Bash(start:*)",
+      "Bash(move \"C:\\\\Users\\\\Dell\\\\Desktop\\\\New folder \\(2\\)\\\\book\\\\src\\\\theme\\\\Navbar\\\\MobileSidebar\\\\PrimaryMenu.tsx\" \"C:\\\\Users\\\\Dell\\\\Desktop\\\\New folder \\(2\\)\\\\book\\\\src\\\\theme\\\\Navbar\\\\MobileSidebar\\\\PrimaryMenu\\\\index.tsx\")",
+      "Bash(lsof:*)",
+      "Bash(xargs:*)",
+      "Bash(git stash:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }
