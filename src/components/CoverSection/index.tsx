@@ -1,50 +1,75 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './styles.module.css';
 
 export function CoverSection(): JSX.Element {
-  const { siteConfig } = useDocusaurusContext();
-
   return (
     <header className={styles.coverSection}>
       <div className={styles.coverContent}>
-        <div className={styles.bookVisual}>
-          <div className={styles.bookCover}>
-            <div className={styles.bookSpine} />
-            <div className={styles.bookFront}>
-              <div className={styles.bookTitle}>
-                <span className={styles.titleLine1}>Physical AI</span>
-                <span className={styles.titleLine2}>&</span>
-                <span className={styles.titleLine3}>Humanoid Robotics</span>
+        {/* ── Left: Hero Text ── */}
+        <div className={styles.heroText}>
+          <div className={styles.eyebrow}>
+            <span className={styles.eyebrowDot} />
+            Open Textbook — 2026 Edition
+          </div>
+
+          <h1 className={styles.title}>
+            Physical AI &<br />
+            <span className={styles.titleHighlight}>Humanoid Robotics</span>
+          </h1>
+
+          <p className={styles.tagline}>
+            A comprehensive textbook for humanoid robotics development — from
+            ROS 2 fundamentals to Vision-Language-Action models.
+          </p>
+
+          <div className={styles.buttons}>
+            <Link className={styles.primaryButton} to="/docs/intro">
+              Start Reading
+              <span className={styles.buttonArrow}>→</span>
+            </Link>
+            <a className={styles.secondaryButton} href="#modules">
+              Explore Modules
+            </a>
+          </div>
+
+          {/* ── Trust / Social Proof ── */}
+          <div className={styles.trustSection}>
+            <span className={styles.trustDivider} />
+            <div className={styles.trustInfo}>
+              <a
+                href="https://github.com/mhoodkhatri"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.authorLink}
+              >
+                <span className={styles.authorAvatar}>MH</span>
+              </a>
+              <div className={styles.trustText}>
+                <span className={styles.trustCount}>16,000+ professionals learning</span>
+                <span className={styles.trustLabel}>by Muhammad Hood</span>
               </div>
-              <div className={styles.bookSubtitle}>A Comprehensive Textbook</div>
             </div>
           </div>
         </div>
 
-        <div className={styles.heroText}>
-          <h1 className={styles.title}>{siteConfig.title}</h1>
-          <p className={styles.tagline}>{siteConfig.tagline}</p>
-          <div className={styles.buttons}>
-            <Link
-              className={styles.primaryButton}
-              to="/docs/intro"
-            >
-              Start Learning
-            </Link>
-            <Link
-              className={styles.secondaryButton}
-              to="/docs/module-1-ros2"
-            >
-              Jump to Module 1
-            </Link>
+        {/* ── Right: Book Cover Image ── */}
+        <div className={styles.bookVisual}>
+          <div className={styles.bookGlow} />
+          <div className={styles.bookCover}>
+            <img
+              src={useBaseUrl('/img/book-cover.png')}
+              alt="Physical AI & Humanoid Robotics Book Cover"
+              className={styles.bookImage}
+            />
           </div>
         </div>
       </div>
 
-      <div className={styles.scrollIndicator}>
-        <span>Scroll to explore modules</span>
+      {/* ── Scroll Indicator ── */}
+      <div className={styles.scrollIndicator} aria-hidden="true">
+        <span className={styles.scrollText}>Scroll to explore</span>
         <div className={styles.scrollArrow} />
       </div>
     </header>
