@@ -40,7 +40,7 @@ export default function PasswordStrength({ password }: Props): React.JSX.Element
           style={{ width: `${percent}%`, backgroundColor: color }}
         />
       </div>
-      <span className="auth-password-strength__label" style={{ color }}>
+      <span className="auth-password-strength__label" style={{ color }} data-testid="password-strength-label">
         {label}
       </span>
     </div>

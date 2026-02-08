@@ -3,6 +3,7 @@ import useBaseUrl from "@docusaurus/useBaseUrl";
 
 interface AuthGuardResult {
   isAuthenticated: boolean;
+  isVerified: boolean;
   isPending: boolean;
   user: Record<string, unknown> | null;
   error: Error | null;
@@ -20,8 +21,11 @@ export function useAuthGuard(): AuthGuardResult {
     typeof window !== "undefined" ? window.location.pathname : "/";
   const loginUrl = `${baseAuthUrl}?tab=signin&redirect=${encodeURIComponent(currentPath)}`;
 
+  const isVerified = user?.emailVerified === true;
+
   return {
-    isAuthenticated: !!user,
+    isAuthenticated: !!user && isVerified,
+    isVerified,
     isPending,
     user,
     error,
