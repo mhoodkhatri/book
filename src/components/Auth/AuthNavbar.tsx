@@ -28,11 +28,11 @@ export default function AuthNavbar(): React.JSX.Element {
     showToast("Signed out successfully.", "success");
   };
 
-  // Loading skeleton
+  // Loading: reserve space with invisible placeholder (no animation flash)
   if (isPending) {
     return (
       <div className="auth-navbar">
-        <div className="auth-navbar__skeleton" aria-label="Loading auth state" />
+        <div className="auth-navbar__placeholder" aria-hidden="true" />
       </div>
     );
   }
@@ -40,8 +40,8 @@ export default function AuthNavbar(): React.JSX.Element {
   // Unauthenticated
   if (!user) {
     return (
-      <div className="auth-navbar">
-        <a href={`${authUrl}?tab=signin`} className="auth-navbar__signin-btn">
+      <div className="auth-navbar auth-navbar--ready">
+        <a href={`${authUrl}?tab=signin`} className="auth-navbar__signin-btn" data-testid="navbar-signin">
           Sign In
         </a>
       </div>
@@ -52,9 +52,10 @@ export default function AuthNavbar(): React.JSX.Element {
   const displayName = (user.name as string) || (user.email as string) || "User";
 
   return (
-    <div className="auth-navbar" ref={dropdownRef}>
+    <div className="auth-navbar auth-navbar--ready" ref={dropdownRef}>
       <button
         className="auth-navbar__user-btn"
+        data-testid="navbar-user-menu"
         onClick={() => setDropdownOpen(!dropdownOpen)}
         aria-expanded={dropdownOpen}
         aria-haspopup="menu"

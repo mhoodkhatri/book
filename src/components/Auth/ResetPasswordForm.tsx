@@ -97,7 +97,7 @@ export default function ResetPasswordForm({ token }: Props): React.JSX.Element {
   if (!token) {
     if (requestSent) {
       return (
-        <div className="auth-form__success">
+        <div className="auth-form__success" data-testid="reset-request-sent">
           <p>
             If an account exists with that email, a password reset link has been
             sent. Check your inbox.
@@ -141,7 +141,7 @@ export default function ResetPasswordForm({ token }: Props): React.JSX.Element {
   // Has token — show reset form
   if (success) {
     return (
-      <div className="auth-form__success">
+      <div className="auth-form__success" data-testid="reset-success">
         <p>Password reset successfully! Redirecting to sign in...</p>
       </div>
     );

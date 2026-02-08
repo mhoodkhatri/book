@@ -27,6 +27,7 @@ export const auth = betterAuth({
   emailVerification: {
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
+    callbackURL: `${process.env.FRONTEND_URL || "http://localhost:3000"}/auth?verified=true`,
     sendVerificationEmail: async ({ user, url }) => {
       await sendVerificationEmail(user, url);
     },

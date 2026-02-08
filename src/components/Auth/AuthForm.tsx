@@ -5,6 +5,7 @@ import PasswordStrength from "./PasswordStrength";
 import { useToast } from "./Toast";
 
 type Tab = "signup" | "signin";
+type SignupState = "idle" | "verificationSent" | "verificationFailed";
 
 interface Props {
   initialTab?: Tab;
@@ -17,6 +18,8 @@ export default function AuthForm({ initialTab = "signin", onSuccess }: Props): R
   const [error, setError] = useState<string | null>(null);
   const [showResendVerification, setShowResendVerification] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [signupState, setSignupState] = useState<SignupState>("idle");
+  const [signupEmailForResend, setSignupEmailForResend] = useState("");
   const { showToast } = useToast();
   const authUrl = useBaseUrl("/auth");
 
@@ -36,6 +39,7 @@ export default function AuthForm({ initialTab = "signin", onSuccess }: Props): R
       e.preventDefault();
       setIsSubmitting(true);
       setError(null);
+      setSignupState("idle");
 
       try {
         const result = await authClient.signUp.email({
@@ -45,19 +49,27 @@ export default function AuthForm({ initialTab = "signin", onSuccess }: Props): R
         });
 
         if (result.error) {
-          setError(result.error.message || "Sign up failed. Please try again.");
+          const msg = (result.error.message || "").toLowerCase();
+          // If account was created but verification email failed
+          if (msg.includes("verification") || msg.includes("email")) {
+            setSignupEmailForResend(signupEmail.trim().toLowerCase());
+            setSignupState("verificationFailed");
+          } else {
+            setError(result.error.message || "Sign up failed. Please try again.");
+          }
           return;
         }
 
-        showToast("Verification email sent — check your inbox!", "success");
-        onSuccess?.();
+        // Signup succeeded — show verification message, do NOT redirect
+        setSignupEmailForResend(signupEmail.trim().toLowerCase());
+        setSignupState("verificationSent");
       } catch {
         setError("Sign up failed. Please try again.");
       } finally {
         setIsSubmitting(false);
       }
     },
-    [signupName, signupEmail, signupPassword, showToast, onSuccess]
+    [signupName, signupEmail, signupPassword]
   );
 
   const handleSignIn = useCallback(
@@ -76,9 +88,11 @@ export default function AuthForm({ initialTab = "signin", onSuccess }: Props): R
 
         if (result.error) {
           const msg = result.error.message || "";
-          if (msg.toLowerCase().includes("verify") || msg.toLowerCase().includes("verification")) {
+          if (msg.toLowerCase().includes("verif")) {
             setError("Please verify your email first.");
             setShowResendVerification(true);
+          } else if (msg.toLowerCase().includes("locked") || msg.toLowerCase().includes("try again in")) {
+            setError(msg);
           } else {
             setError("Invalid email or password.");
           }
@@ -96,30 +110,97 @@ export default function AuthForm({ initialTab = "signin", onSuccess }: Props): R
     [signinEmail, signinPassword, rememberMe, showToast, onSuccess]
   );
 
+  const startResendCooldown = useCallback(() => {
+    setResendCooldown(60);
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
   const handleResendVerification = useCallback(async () => {
     if (resendCooldown > 0) return;
 
+    const emailToResend = signupEmailForResend || signinEmail.trim().toLowerCase();
+    if (!emailToResend) return;
+
     try {
       await authClient.sendVerificationEmail({
-        email: signinEmail.trim().toLowerCase(),
+        email: emailToResend,
       });
       showToast("Verification email sent!", "success");
-
-      // Start 60-second cooldown
-      setResendCooldown(60);
-      const interval = setInterval(() => {
-        setResendCooldown((prev) => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+      if (signupState === "verificationFailed") {
+        setSignupState("verificationSent");
+      }
+      startResendCooldown();
     } catch {
       showToast("Failed to resend verification email.", "error");
     }
-  }, [signinEmail, resendCooldown, showToast]);
+  }, [signupEmailForResend, signinEmail, resendCooldown, showToast, signupState, startResendCooldown]);
+
+  // Show verification state panels instead of the form
+  if (signupState === "verificationSent") {
+    return (
+      <div className="auth-form">
+        <div className="auth-form__verification-panel" role="status" data-testid="verification-sent-panel">
+          <h3>Check your email</h3>
+          <p>
+            A verification email has been sent to <strong>{signupEmailForResend}</strong>.
+            Please check your inbox and click the verification link to continue.
+          </p>
+          <button
+            className="auth-form__resend-btn"
+            onClick={handleResendVerification}
+            disabled={resendCooldown > 0}
+          >
+            {resendCooldown > 0
+              ? `Resend verification email (${resendCooldown}s)`
+              : "Resend verification email"}
+          </button>
+          <button
+            className="auth-form__back-btn"
+            onClick={() => { setSignupState("idle"); setTab("signin"); }}
+          >
+            Back to Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (signupState === "verificationFailed") {
+    return (
+      <div className="auth-form">
+        <div className="auth-form__verification-panel auth-form__verification-panel--error" role="alert" data-testid="verification-failed-panel">
+          <h3>Verification email failed</h3>
+          <p>
+            Your account was created, but we couldn't send the verification email.
+            Please try resending it.
+          </p>
+          <button
+            className="auth-form__resend-btn"
+            onClick={handleResendVerification}
+            disabled={resendCooldown > 0}
+          >
+            {resendCooldown > 0
+              ? `Resend verification email (${resendCooldown}s)`
+              : "Resend verification email"}
+          </button>
+          <button
+            className="auth-form__back-btn"
+            onClick={() => { setSignupState("idle"); setTab("signin"); }}
+          >
+            Back to Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-form">

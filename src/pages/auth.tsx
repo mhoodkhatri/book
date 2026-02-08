@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Layout from "@theme/Layout";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 import useBaseUrl from "@docusaurus/useBaseUrl";
@@ -9,24 +9,36 @@ import { useAuth } from "@site/src/contexts/AuthContext";
 type Tab = "signup" | "signin" | "reset";
 
 function AuthPageContent(): React.JSX.Element {
-  const { user } = useAuth();
+  const { user, refetch } = useAuth();
   const baseUrl = useBaseUrl("/");
+  const [verifiedBanner, setVerifiedBanner] = useState(false);
 
-  const { tab, redirect, token } = useMemo(() => {
+  const { tab, redirect, token, verified } = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
     return {
       tab: (params.get("tab") as Tab) || "signin",
       redirect: params.get("redirect") || baseUrl,
       token: params.get("token") || "",
+      verified: params.get("verified") === "true",
     };
   }, [baseUrl]);
+
+  // Handle verification callback — refetch session and show banner
+  useEffect(() => {
+    if (verified) {
+      setVerifiedBanner(true);
+      refetch();
+    }
+  }, [verified, refetch]);
 
   const handleSuccess = () => {
     window.location.href = redirect;
   };
 
-  // If already authenticated, redirect
-  if (user) {
+  // Only auto-redirect if user is authenticated AND email is verified
+  const isVerified = user && (user as Record<string, unknown>).emailVerified === true;
+
+  if (isVerified) {
     window.location.href = redirect;
     return <div className="auth-page__loading">Redirecting...</div>;
   }
@@ -34,6 +46,11 @@ function AuthPageContent(): React.JSX.Element {
   return (
     <div className="auth-page">
       <div className="auth-page__card">
+        {verifiedBanner && (
+          <div className="auth-page__verified-banner" role="status">
+            Email verified successfully! You can now sign in.
+          </div>
+        )}
         <h1 className="auth-page__title">
           {tab === "reset" ? "Reset Password" : "Welcome"}
         </h1>
