@@ -116,23 +116,22 @@
   overflow: hidden;
 }
 
-/* Module accent stripe at top */
+/* Module accent border on all sides */
 .cardInner::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: var(--module-accent, var(--color-blue));
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid var(--module-accent, var(--color-blue));
   opacity: 0;
   transition: opacity var(--transition-normal);
+  pointer-events: none;
 }
 
 .moduleCard.visible .cardInner:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-xl);
-  border-color: var(--color-border-light);
+  box-shadow: 0 0 0 1px var(--module-accent, var(--color-blue)), var(--shadow-xl);
+  border-color: var(--module-accent, var(--color-blue));
 }
 
 .moduleCard.visible .cardInner:hover::before {
@@ -286,8 +285,8 @@
 }
 
 :global([data-theme='dark']) .moduleCard.visible .cardInner:hover {
-  box-shadow: var(--shadow-xl);
-  border-color: var(--color-border);
+  box-shadow: 0 0 0 1px var(--module-accent, var(--color-blue)), var(--shadow-xl);
+  border-color: var(--module-accent, var(--color-blue));
 }
 
 :global([data-theme='dark']) .moduleLink {

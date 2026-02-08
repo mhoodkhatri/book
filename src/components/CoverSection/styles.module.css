@@ -139,7 +139,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-4) var(--space-8);
+  padding: var(--space-4) var(--space-12);
   background: var(--color-blue);
   color: #ffffff;
   font-family: var(--font-family-sans);
@@ -205,7 +205,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  margin-top: var(--space-10);
+  margin-top: var(--space-6);
   opacity: 0;
   animation: fadeSlideUp 0.8s var(--ease-out) 0.6s forwards;
 }
@@ -331,7 +331,7 @@
   height: auto;
 }
 
-/* ── Scroll Indicator ── */
+/* ── Scroll Indicator (desktop: absolute positioned) ── */
 .scrollIndicator {
   position: absolute;
   bottom: var(--space-6);
@@ -344,6 +344,17 @@
   opacity: 0;
   animation: fadeSlideUp 0.8s var(--ease-out) 0.9s forwards;
   z-index: 1;
+}
+
+/* ── Scroll Indicator (mobile: inline after author badge) ── */
+.scrollIndicatorInline {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-8);
+  opacity: 0;
+  animation: fadeSlideUp 0.8s var(--ease-out) 0.9s forwards;
 }
 
 .scrollText {
@@ -482,39 +493,48 @@
 @media (max-width: 480px) {
   .coverSection {
     padding: var(--space-5) var(--space-4) var(--space-10);
-    min-height: calc(100svh - var(--ifm-navbar-height, 60px));
+    min-height: auto;
+    justify-content: flex-start;
   }
 
   .coverContent {
     gap: var(--space-6);
   }
 
+  .heroText {
+    min-height: calc(100svh - var(--ifm-navbar-height, 60px) - var(--space-5) - var(--space-10) - var(--space-6));
+    justify-content: center;
+  }
+
   .eyebrow {
+    margin-top: var(--space-10);
     margin-bottom: var(--space-4);
   }
 
   .title {
-    font-size: var(--text-3xl);
-    margin-bottom: var(--space-4);
+    font-size: clamp(2.25rem, 10vw, 3rem);
+    margin-bottom: var(--space-3);
   }
 
   .tagline {
-    font-size: var(--text-base);
-    margin-bottom: var(--space-6);
+    font-size: var(--text-lg);
+    margin-bottom: var(--space-8);
   }
 
   .buttons {
     flex-direction: column;
-    width: 100%;
-    max-width: 280px;
+    align-items: center;
   }
 
   .primaryButton,
   .secondaryButton {
     justify-content: center;
-    width: 100%;
-    padding: var(--space-3) var(--space-6);
-    font-size: var(--text-sm);
+    width: auto;
+    padding: var(--space-3) var(--space-10);
+  }
+
+  .bookVisual {
+    margin-top: var(--space-10);
   }
 
   .bookGlow {
@@ -523,13 +543,17 @@
   }
 
   .bookImage {
-    width: 220px;
+    width: 280px;
   }
 
   .trustSection {
     flex-direction: column;
     gap: var(--space-3);
-    margin-top: var(--space-6);
+    margin-top: var(--space-12);
+  }
+
+  .authorBadge {
+    align-items: center;
   }
 
   .trustDivider {
@@ -537,7 +561,11 @@
   }
 
   .scrollIndicator {
-    bottom: var(--space-3);
+    display: none;
+  }
+
+  .scrollIndicatorInline {
+    display: flex;
   }
 }
 

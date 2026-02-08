@@ -29,9 +29,9 @@ export function CoverSection(): JSX.Element {
               Start Reading
               <span className={styles.buttonArrow}>→</span>
             </Link>
-            <a className={styles.secondaryButton} href="#modules">
+            {/* <a className={styles.secondaryButton} href="#modules">
               Explore Modules
-            </a>
+            </a> */}
           </div>
 
           {/* ── Author Badge ── */}
@@ -56,6 +56,12 @@ export function CoverSection(): JSX.Element {
               </div>
             </a>
           </div>
+
+          {/* ── Scroll Indicator (inline on mobile) ── */}
+          <div className={styles.scrollIndicatorInline} aria-hidden="true">
+            <span className={styles.scrollText}>Scroll to explore</span>
+            <div className={styles.scrollArrow} />
+          </div>
         </div>
 
         {/* ── Right: Book Cover Image ── */}
@@ -71,7 +77,7 @@ export function CoverSection(): JSX.Element {
         </div>
       </div>
 
-      {/* ── Scroll Indicator ── */}
+      {/* ── Scroll Indicator (absolute on desktop) ── */}
       <div className={styles.scrollIndicator} aria-hidden="true">
         <span className={styles.scrollText}>Scroll to explore</span>
         <div className={styles.scrollArrow} />
