@@ -12,6 +12,11 @@
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:report": "playwright show-report",
     "typecheck": "tsc",
     "dev": "concurrently -n auth,api,web -c blue,green,magenta \"npm run dev:auth\" \"npm run dev:api\" \"npm run dev:web\"",
     "dev:auth": "cd auth-service && npm run dev",
@@ -37,8 +42,18 @@
     "@docusaurus/module-type-aliases": "3.9.2",
     "@docusaurus/tsconfig": "3.9.2",
     "@docusaurus/types": "3.9.2",
+    "@playwright/test": "^1.58.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/pg": "^8.16.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "concurrently": "^9.2.1",
-    "typescript": "~5.6.2"
+    "dotenv": "^17.2.3",
+    "jsdom": "^27.0.1",
+    "pg": "^8.18.0",
+    "typescript": "~5.6.2",
+    "vitest": "^4.0.18"
   },
   "browserslist": {
     "production": [
