@@ -11,7 +11,7 @@ const config: Config = {
     v4: true,
   },
 
-  url: 'https://your-username.github.io',
+  url: 'https://mhoodkhatri.github.io',
   baseUrl: '/book/',
 
   // Custom fields for chat API and auth
@@ -20,7 +20,7 @@ const config: Config = {
     authApiUrl: process.env.AUTH_API_URL || 'http://localhost:3005',
   },
 
-  organizationName: 'your-username',
+  organizationName: 'mhoodkhatri',
   projectName: 'book',
 
   onBrokenLinks: 'throw',
@@ -36,7 +36,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/your-username/book/tree/main/',
+          editUrl: 'https://github.com/mhoodkhatri/book/tree/main/',
         },
         blog: false,
         theme: {
@@ -66,7 +66,7 @@ const config: Config = {
     {
       src: 'https://plausible.io/js/script.js',
       defer: true,
-      'data-domain': 'your-username.github.io',
+      'data-domain': 'mhoodkhatri.github.io',
     },
   ],
 
@@ -92,8 +92,9 @@ const config: Config = {
         },
         {
           href: 'https://github.com/mhoodkhatri/book',
-          label: 'GitHub',
           position: 'right',
+          className: 'header-github-link',
+          'aria-label': 'GitHub repository',
         },
       ],
     },
