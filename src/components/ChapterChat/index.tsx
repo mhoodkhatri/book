@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import { useAuth } from '@site/src/contexts/AuthContext';
 import styles from './styles.module.css';
 
 interface Message {
@@ -27,6 +28,7 @@ export function ChapterChat({
   onMessageSent,
 }: ChapterChatProps): React.JSX.Element {
   const { siteConfig } = useDocusaurusContext();
+  const { session } = useAuth();
   const chatApiUrl = (siteConfig.customFields?.chatApiUrl as string) || 'http://localhost:8000';
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -70,6 +72,7 @@ export function ChapterChat({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(session?.token ? { 'Authorization': `Bearer ${session.token as string}` } : {}),
         },
         credentials: 'include',
         body: JSON.stringify({

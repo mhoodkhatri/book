@@ -14,7 +14,7 @@ export function TextSelectionPopup({ onAskAI }: TextSelectionPopupProps): React.
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const [isVisible, setIsVisible] = useState(false);
 
-  const handleMouseUp = useCallback(() => {
+  const checkSelection = useCallback(() => {
     // Small delay to ensure selection is complete
     setTimeout(() => {
       const selection = window.getSelection();
@@ -24,9 +24,10 @@ export function TextSelectionPopup({ onAskAI }: TextSelectionPopupProps): React.
         const range = selection?.getRangeAt(0);
         if (range) {
           const rect = range.getBoundingClientRect();
+          const isMobile = 'ontouchstart' in window;
           setPosition({
             x: rect.left + rect.width / 2,
-            y: rect.top - 10,
+            y: isMobile ? rect.bottom + 10 : rect.top - 10,
           });
           setSelectedText(text);
           setIsVisible(true);
@@ -38,8 +39,8 @@ export function TextSelectionPopup({ onAskAI }: TextSelectionPopupProps): React.
     }, 10);
   }, []);
 
-  const handleMouseDown = useCallback((e: MouseEvent) => {
-    // Hide popup when clicking elsewhere (but not on the popup itself)
+  const handleDismiss = useCallback((e: MouseEvent | TouchEvent) => {
+    // Hide popup when clicking/tapping elsewhere (but not on the popup itself)
     const target = e.target as HTMLElement;
     if (!target.closest(`.${styles.selectionPopup}`)) {
       setIsVisible(false);
@@ -50,17 +51,44 @@ export function TextSelectionPopup({ onAskAI }: TextSelectionPopupProps): React.
     setIsVisible(false);
   }, []);
 
+  // On mobile, selectionchange fires as user adjusts selection handles
+  const handleSelectionChange = useCallback(() => {
+    const selection = window.getSelection();
+    const text = selection?.toString().trim() || '';
+    if (text.length > 3 && text.length < 500) {
+      const range = selection?.getRangeAt(0);
+      if (range) {
+        const rect = range.getBoundingClientRect();
+        setPosition({
+          x: rect.left + rect.width / 2,
+          y: rect.bottom + 10,
+        });
+        setSelectedText(text);
+        setIsVisible(true);
+      }
+    }
+  }, []);
+
   useEffect(() => {
-    document.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('mousedown', handleMouseDown);
+    // Desktop
+    document.addEventListener('mouseup', checkSelection);
+    document.addEventListener('mousedown', handleDismiss);
+    // Mobile
+    document.addEventListener('touchend', checkSelection);
+    document.addEventListener('touchstart', handleDismiss);
+    document.addEventListener('selectionchange', handleSelectionChange);
+    // Scroll
     document.addEventListener('scroll', handleScroll, true);
 
     return () => {
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mouseup', checkSelection);
+      document.removeEventListener('mousedown', handleDismiss);
+      document.removeEventListener('touchend', checkSelection);
+      document.removeEventListener('touchstart', handleDismiss);
+      document.removeEventListener('selectionchange', handleSelectionChange);
       document.removeEventListener('scroll', handleScroll, true);
     };
-  }, [handleMouseUp, handleMouseDown, handleScroll]);
+  }, [checkSelection, handleDismiss, handleSelectionChange, handleScroll]);
 
   const handleAskAI = () => {
     if (selectedText) {
