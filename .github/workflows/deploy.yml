@@ -32,6 +32,9 @@ jobs:
 
       - name: Build website
         run: npm run build
+        env:
+          CHAT_API_URL: ${{ secrets.CHAT_API_URL }}
+          AUTH_API_URL: ${{ secrets.AUTH_API_URL }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
