@@ -16,7 +16,12 @@
     "dev": "concurrently -n auth,api,web -c blue,green,magenta \"npm run dev:auth\" \"npm run dev:api\" \"npm run dev:web\"",
     "dev:auth": "cd auth-service && npm run dev",
     "dev:api": "cd backend && python -m uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload",
-    "dev:web": "docusaurus start"
+    "dev:web": "docusaurus start",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "npx playwright test",
+    "test:e2e:headed": "npx playwright test --headed",
+    "test:all": "vitest run && npx playwright test"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.13",
@@ -37,8 +42,15 @@
     "@docusaurus/module-type-aliases": "3.9.2",
     "@docusaurus/tsconfig": "3.9.2",
     "@docusaurus/types": "3.9.2",
+    "@playwright/test": "^1.58.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@vitejs/plugin-react": "^4.7.0",
     "concurrently": "^9.2.1",
-    "typescript": "~5.6.2"
+    "jsdom": "^25.0.1",
+    "typescript": "~5.6.2",
+    "vitest": "^4.0.18"
   },
   "browserslist": {
     "production": [
