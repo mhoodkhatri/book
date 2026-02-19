@@ -32,7 +32,7 @@ export default function AuthNavbar(): React.JSX.Element {
   if (isPending) {
     return (
       <div className="auth-navbar">
-        <div className="auth-navbar__skeleton" aria-label="Loading auth state" />
+        <div className="auth-navbar__placeholder" aria-label="Loading auth state" />
       </div>
     );
   }
@@ -40,7 +40,7 @@ export default function AuthNavbar(): React.JSX.Element {
   // Unauthenticated
   if (!user) {
     return (
-      <div className="auth-navbar">
+      <div className="auth-navbar auth-navbar--ready">
         <a href={`${authUrl}?tab=signin`} className="auth-navbar__signin-btn">
           Sign In
         </a>
@@ -52,7 +52,7 @@ export default function AuthNavbar(): React.JSX.Element {
   const displayName = (user.name as string) || (user.email as string) || "User";
 
   return (
-    <div className="auth-navbar" ref={dropdownRef}>
+    <div className="auth-navbar auth-navbar--ready" ref={dropdownRef}>
       <button
         className="auth-navbar__user-btn"
         onClick={() => setDropdownOpen(!dropdownOpen)}

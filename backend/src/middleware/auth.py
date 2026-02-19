@@ -5,6 +5,7 @@ session table directly. No HTTP call to the auth service needed.
 """
 
 import os
+import ssl
 import logging
 from typing import Optional
 
@@ -23,7 +24,11 @@ async def get_db_pool() -> asyncpg.Pool:
         database_url = os.getenv("DATABASE_URL")
         if not database_url:
             raise RuntimeError("DATABASE_URL environment variable is required for auth")
-        _pool = await asyncpg.create_pool(database_url, min_size=1, max_size=5)
+        # Use explicit SSL context for Neon Postgres — the sslmode query
+        # param alone causes TLS handshake timeouts on some platforms.
+        ssl_ctx = ssl.create_default_context()
+        dsn = database_url.split("?")[0]  # strip query params; SSL handled via kwarg
+        _pool = await asyncpg.create_pool(dsn, min_size=1, max_size=5, ssl=ssl_ctx)
     return _pool
 
 
@@ -45,6 +50,12 @@ async def get_current_user(request: Request) -> dict:
     """
     # Better-Auth cookie name — value is "TOKEN.SIGNATURE", DB stores only TOKEN
     raw_token = request.cookies.get("better-auth.session_token")
+
+    # Fallback: Bearer token in Authorization header (required for cross-origin production requests)
+    if raw_token is None:
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            raw_token = auth_header[len("Bearer "):]
 
     if not raw_token:
         raise HTTPException(status_code=401, detail="Authentication required")
