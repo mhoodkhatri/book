@@ -1,0 +1,83 @@
+name: Deploy Backend Services to Railway
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-auth-service:
+    runs-on: ubuntu-latest
+    name: Deploy auth-service to Railway
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Set auth-service environment variables
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+        run: |
+          cd auth-service
+          railway variables set \
+            DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            BETTER_AUTH_SECRET="${{ secrets.BETTER_AUTH_SECRET }}" \
+            BETTER_AUTH_URL="${{ secrets.BETTER_AUTH_URL }}" \
+            FRONTEND_URL="https://mhoodkhatri.github.io" \
+            BREVO_API_KEY="${{ secrets.BREVO_API_KEY }}" \
+            BREVO_SENDER_EMAIL="${{ secrets.BREVO_SENDER_EMAIL }}" \
+            BREVO_SENDER_NAME="Robotics Book" \
+            --service auth-service
+
+      - name: Deploy auth-service
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+        run: |
+          cd auth-service
+          railway up --service auth-service --detach
+          echo "auth-service deployed"
+
+  deploy-backend:
+    runs-on: ubuntu-latest
+    name: Deploy FastAPI backend to Railway
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Set backend environment variables
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+        run: |
+          cd backend
+          railway variables set \
+            GROQ_API_KEY="${{ secrets.GROQ_API_KEY }}" \
+            QDRANT_URL="${{ secrets.QDRANT_URL }}" \
+            QDRANT_API_KEY="${{ secrets.QDRANT_API_KEY }}" \
+            DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            CORS_ORIGINS="https://mhoodkhatri.github.io" \
+            --service backend
+
+      - name: Deploy backend
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+        run: |
+          cd backend
+          railway up --service backend --detach
+          echo "backend deployed"
