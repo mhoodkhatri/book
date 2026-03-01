@@ -23,17 +23,20 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+          BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
         run: |
           cd auth-service
           railway variables set \
             DATABASE_URL="${{ secrets.DATABASE_URL }}" \
             BETTER_AUTH_SECRET="${{ secrets.BETTER_AUTH_SECRET }}" \
-            BETTER_AUTH_URL="${{ secrets.BETTER_AUTH_URL }}" \
             FRONTEND_URL="https://mhoodkhatri.github.io" \
             BREVO_API_KEY="${{ secrets.BREVO_API_KEY }}" \
             BREVO_SENDER_EMAIL="${{ secrets.BREVO_SENDER_EMAIL }}" \
             BREVO_SENDER_NAME="Robotics Book" \
             --service auth-service
+          if [ -n "$BETTER_AUTH_URL" ]; then
+            railway variables set BETTER_AUTH_URL="$BETTER_AUTH_URL" --service auth-service
+          fi
 
       - name: Deploy auth-service
         env:
