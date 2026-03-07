@@ -36,8 +36,8 @@ app.post("/api/auth/custom/delete-account", express.json(), deleteAccountHandler
 // Better-Auth handler — MUST be BEFORE express.json()
 // Better-Auth parses its own request bodies
 const authHandler = toNodeHandler(auth);
-app.all("/api/auth/*", (req, res, next) => {
-  authHandler(req, res, next).catch?.((err: unknown) => {
+app.all("/api/auth/*", (req, res) => {
+  Promise.resolve(authHandler(req, res)).catch((err: unknown) => {
     console.error("[auth-error]", req.method, req.url, err);
     if (!res.headersSent) {
       res.status(500).json({ error: "Internal auth error", detail: String(err) });
