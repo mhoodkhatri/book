@@ -34,6 +34,19 @@ export const auth = betterAuth({
   session: {
     expiresIn: 30 * 60,
     updateAge: 5 * 60,
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60,
+    },
+  },
+  advanced: {
+    crossSubDomainCookies: {
+      enabled: false,
+    },
+    defaultCookieAttributes: {
+      sameSite: "none",
+      secure: true,
+    },
   },
   user: {
     additionalFields: {
