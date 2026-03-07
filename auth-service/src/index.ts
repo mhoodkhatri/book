@@ -37,20 +37,34 @@ app.post("/api/auth/custom/delete-account", express.json(), deleteAccountHandler
 // Better-Auth parses its own request bodies
 const authHandler = toNodeHandler(auth);
 app.all("/api/auth/*", (req, res) => {
+  // Capture written chunks
+  const chunks: Buffer[] = [];
+  const origWrite = res.write.bind(res);
+  (res as any).write = function (chunk: any, ...rest: any[]) {
+    if (chunk) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk)));
+    return (origWrite as any)(chunk, ...rest);
+  };
   // Intercept res.end to log what Better-Auth sends
   const origEnd = res.end.bind(res);
   (res as any).end = function (...args: any[]) {
+    if (args[0]) chunks.push(Buffer.isBuffer(args[0]) ? args[0] : Buffer.from(String(args[0])));
     if (res.statusCode >= 400) {
-      const bodyStr = args[0]?.toString?.()?.slice(0, 500) || "(empty)";
+      const bodyStr = Buffer.concat(chunks).toString("utf8").slice(0, 1000) || "(empty)";
       lastAuthError = `${req.method} ${req.url} -> ${res.statusCode}: ${bodyStr}`;
       console.error("[auth-response]", lastAuthError);
+      authErrors.push(`${new Date().toISOString()} ${lastAuthError}`);
+      if (authErrors.length > 10) authErrors.shift();
     }
     return origEnd(...args);
   };
   Promise.resolve(authHandler(req, res)).catch((err: unknown) => {
-    console.error("[auth-error]", req.method, req.url, err);
+    const errDetail = err instanceof Error ? `${err.message}\n${err.stack}` : String(err);
+    console.error("[auth-error]", req.method, req.url, errDetail);
+    lastAuthError = `THROWN: ${req.method} ${req.url} -> ${errDetail}`;
+    authErrors.push(`${new Date().toISOString()} ${lastAuthError}`);
+    if (authErrors.length > 10) authErrors.shift();
     if (!res.headersSent) {
-      res.status(500).json({ error: "Internal auth error", detail: String(err) });
+      res.status(500).json({ error: "Internal auth error", detail: errDetail });
     }
   });
 });
@@ -60,12 +74,21 @@ app.get("/health", (_req, res) => {
   res.json({ status: "healthy", service: "auth-service" });
 });
 
-// Store last auth error for debugging
+// Store last auth errors for debugging (keep up to 5)
 let lastAuthError: string = "none";
+const authErrors: string[] = [];
+
+// Capture unhandled rejections
+process.on("unhandledRejection", (reason) => {
+  const msg = `[unhandledRejection] ${String(reason)}`;
+  console.error(msg);
+  authErrors.push(`${new Date().toISOString()} ${msg}`);
+  if (authErrors.length > 10) authErrors.shift();
+});
 
 // Debug: expose last auth error
 app.get("/debug/last-error", (_req, res) => {
-  res.json({ lastAuthError });
+  res.json({ lastAuthError, recentErrors: authErrors });
 });
 app.get("/debug/env", (_req, res) => {
   res.json({
@@ -78,6 +101,15 @@ app.get("/debug/env", (_req, res) => {
     NODE_ENV: process.env.NODE_ENV || "unset",
     NODE_VERSION: process.version,
   });
+});
+// Debug: test DB connectivity
+app.get("/debug/db-test", async (_req, res) => {
+  try {
+    const result = await pool.query("SELECT COUNT(*) as count FROM \"user\"");
+    res.json({ ok: true, userCount: result.rows[0].count });
+  } catch (err) {
+    res.json({ ok: false, error: String(err) });
+  }
 });
 
 app.listen(PORT, () => {
