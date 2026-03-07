@@ -37,6 +37,14 @@ app.post("/api/auth/custom/delete-account", express.json(), deleteAccountHandler
 // Better-Auth parses its own request bodies
 const authHandler = toNodeHandler(auth);
 app.all("/api/auth/*", (req, res) => {
+  // Debug: log incoming request details
+  const reqChunks: Buffer[] = [];
+  req.on("data", (chunk: Buffer) => reqChunks.push(chunk));
+  req.on("end", () => {
+    const body = Buffer.concat(reqChunks).toString("utf8");
+    lastAuthRequest = `${req.method} ${req.url} content-type=${req.headers["content-type"]} body-length=${body.length} body=${body.slice(0, 300)}`;
+    console.log(`[auth-req]`, lastAuthRequest);
+  });
   // Capture written chunks
   const chunks: Buffer[] = [];
   const origWrite = res.write.bind(res);
@@ -77,6 +85,7 @@ app.get("/health", (_req, res) => {
 // Store last auth errors for debugging (keep up to 5)
 let lastAuthError: string = "none";
 const authErrors: string[] = [];
+let lastAuthRequest: string = "none";
 
 // Capture unhandled rejections
 process.on("unhandledRejection", (reason) => {
@@ -88,7 +97,7 @@ process.on("unhandledRejection", (reason) => {
 
 // Debug: expose last auth error
 app.get("/debug/last-error", (_req, res) => {
-  res.json({ lastAuthError, recentErrors: authErrors });
+  res.json({ lastAuthError, lastAuthRequest, recentErrors: authErrors });
 });
 app.get("/debug/env", (_req, res) => {
   res.json({
