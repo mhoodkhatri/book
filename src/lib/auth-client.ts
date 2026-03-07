@@ -17,6 +17,9 @@ const AUTH_BASE_URL =
  */
 export const authClient = createAuthClient({
   baseURL: AUTH_BASE_URL,
+  fetchOptions: {
+    credentials: "include" as RequestCredentials,
+  },
 });
 
 export const {
