@@ -107,6 +107,31 @@ app.get("/debug/env", (_req, res) => {
     NODE_VERSION: process.version,
   });
 });
+// Debug: test sign-up via raw Web Request to handler
+app.get("/debug/test-handler", async (_req, res) => {
+  try {
+    const baseURL = process.env.BETTER_AUTH_URL || "http://localhost:3005";
+    const webReq = new Request(`${baseURL}/api/auth/sign-up/email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: "handler-test@example.com",
+        password: "TestPass123!",
+        name: "Handler Test",
+      }),
+    });
+    const response = await originalHandler(webReq);
+    const text = await response.text();
+    res.json({
+      ok: response.ok,
+      status: response.status,
+      headers: Object.fromEntries(response.headers.entries()),
+      body: text.slice(0, 500),
+    });
+  } catch (err: any) {
+    res.json({ ok: false, error: err?.message, stack: err?.stack?.slice(0, 500) });
+  }
+});
 // Debug: test sign-up via Better-Auth internal API
 app.get("/debug/test-signup", async (_req, res) => {
   try {
