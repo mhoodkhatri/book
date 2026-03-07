@@ -1,6 +1,6 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "npx @better-auth/cli migrate && npm run build"
+buildCommand = "npm run build"
 
 [deploy]
 startCommand = "node dist/index.js"
