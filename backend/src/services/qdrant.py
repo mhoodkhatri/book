@@ -31,7 +31,7 @@ class QdrantService:
         self.dimension = settings.embedding_dimension
 
     def ensure_collection(self) -> bool:
-        """Create collection if it doesn't exist."""
+        """Create collection if it doesn't exist, including payload index."""
         collections = self.client.get_collections().collections
         exists = any(c.name == self.collection_name for c in collections)
 
@@ -42,6 +42,12 @@ class QdrantService:
                     size=self.dimension,
                     distance=Distance.COSINE,
                 ),
+            )
+            # Required for filtered deletes and searches by chapter_id
+            self.client.create_payload_index(
+                collection_name=self.collection_name,
+                field_name="chapter_id",
+                field_schema="keyword",
             )
             return True
         return False
