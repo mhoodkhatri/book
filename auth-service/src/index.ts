@@ -64,6 +64,9 @@ const wrappedHandler = async (request: Request) => {
 
 const authHandler = toNodeHandler(auth);
 app.all("/api/auth/*", (req, res) => {
+  // Debug: log raw request headers for body parsing investigation
+  console.log(`[auth-headers] ${req.method} ${req.url} httpVersion=${req.httpVersion} content-length=${req.headers["content-length"]} transfer-encoding=${req.headers["transfer-encoding"]} content-type=${req.headers["content-type"]}`);
+  lastAuthRequest = `${req.method} ${req.url} httpVer=${req.httpVersion} content-length=${req.headers["content-length"]} transfer-encoding=${req.headers["transfer-encoding"]}`;
   Promise.resolve(authHandler(req, res)).catch((err: unknown) => {
     const errDetail = err instanceof Error ? `${err.message}\n${err.stack}` : String(err);
     console.error("[auth-error]", req.method, req.url, errDetail);
