@@ -918,13 +918,6 @@ blockquote {
   align-items: center;
   margin-left: 0.5rem;
   flex-shrink: 0;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-/* Fade in once auth state resolves */
-.auth-navbar--ready {
-  opacity: 1;
 }
 
 /* Invisible placeholder — reserves button space without pulsing/blinking */
