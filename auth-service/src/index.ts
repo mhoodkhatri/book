@@ -15,6 +15,18 @@ for (const envVar of requiredEnvVars) {
   }
 }
 
+// Intercept console.error to capture Better-Auth's "# SERVER_ERROR:" logs
+const origConsoleError = console.error.bind(console);
+const serverErrors: string[] = [];
+console.error = (...args: any[]) => {
+  origConsoleError(...args);
+  const msg = args.map((a) => (typeof a === "object" ? JSON.stringify(a, Object.getOwnPropertyNames(a)).slice(0, 500) : String(a))).join(" ");
+  if (msg.includes("SERVER_ERROR") || msg.includes("auth")) {
+    serverErrors.push(`${new Date().toISOString()} ${msg.slice(0, 800)}`);
+    if (serverErrors.length > 10) serverErrors.shift();
+  }
+};
+
 const app = express();
 const PORT = parseInt(process.env.PORT || "3005", 10);
 
@@ -96,7 +108,7 @@ process.on("unhandledRejection", (reason) => {
 
 // Debug: expose last auth error
 app.get("/debug/last-error", (_req, res) => {
-  res.json({ lastAuthError, lastAuthRequest, recentErrors: authErrors });
+  res.json({ lastAuthError, lastAuthRequest, recentErrors: authErrors, serverErrors });
 });
 app.get("/debug/env", (_req, res) => {
   res.json({
