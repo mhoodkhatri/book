@@ -37,6 +37,16 @@ app.post("/api/auth/custom/delete-account", express.json(), deleteAccountHandler
 // Better-Auth parses its own request bodies
 const authHandler = toNodeHandler(auth);
 app.all("/api/auth/*", (req, res) => {
+  // Intercept res.end to log what Better-Auth sends
+  const origEnd = res.end.bind(res);
+  (res as any).end = function (...args: any[]) {
+    if (res.statusCode >= 400) {
+      const bodyStr = args[0]?.toString?.()?.slice(0, 500) || "(empty)";
+      lastAuthError = `${req.method} ${req.url} -> ${res.statusCode}: ${bodyStr}`;
+      console.error("[auth-response]", lastAuthError);
+    }
+    return origEnd(...args);
+  };
   Promise.resolve(authHandler(req, res)).catch((err: unknown) => {
     console.error("[auth-error]", req.method, req.url, err);
     if (!res.headersSent) {
@@ -50,7 +60,13 @@ app.get("/health", (_req, res) => {
   res.json({ status: "healthy", service: "auth-service" });
 });
 
-// Debug endpoint (temporary — remove after fixing)
+// Store last auth error for debugging
+let lastAuthError: string = "none";
+
+// Debug: expose last auth error
+app.get("/debug/last-error", (_req, res) => {
+  res.json({ lastAuthError });
+});
 app.get("/debug/env", (_req, res) => {
   res.json({
     DATABASE_URL: process.env.DATABASE_URL ? "set" : "missing",
