@@ -15,18 +15,6 @@ for (const envVar of requiredEnvVars) {
   }
 }
 
-// Intercept console.error to capture Better-Auth's "# SERVER_ERROR:" logs
-const origConsoleError = console.error.bind(console);
-const serverErrors: string[] = [];
-console.error = (...args: any[]) => {
-  origConsoleError(...args);
-  const msg = args.map((a) => (typeof a === "object" ? JSON.stringify(a, Object.getOwnPropertyNames(a)).slice(0, 500) : String(a))).join(" ");
-  if (msg.includes("SERVER_ERROR") || msg.includes("auth")) {
-    serverErrors.push(`${new Date().toISOString()} ${msg.slice(0, 800)}`);
-    if (serverErrors.length > 10) serverErrors.shift();
-  }
-};
-
 const app = express();
 const PORT = parseInt(process.env.PORT || "3005", 10);
 
@@ -47,43 +35,12 @@ app.post("/api/auth/custom/delete-account", express.json(), deleteAccountHandler
 
 // Better-Auth handler — MUST be BEFORE express.json()
 // Better-Auth parses its own request bodies
-// Wrap auth.handler to intercept the Web Response before it goes to Node
-const originalHandler = auth.handler;
-const wrappedHandler = async (request: Request) => {
-  try {
-    const response = await originalHandler(request);
-    if (response.status >= 400) {
-      // Clone the response so we can read the body without consuming it
-      const cloned = response.clone();
-      const text = await cloned.text();
-      const msg = `[handler-response] ${request.method} ${request.url} -> ${response.status}: body=${text.slice(0, 500) || "(empty)"} headers=${JSON.stringify(Object.fromEntries(response.headers.entries()))}`;
-      console.error(msg);
-      lastAuthError = msg;
-      authErrors.push(`${new Date().toISOString()} ${msg}`);
-      if (authErrors.length > 10) authErrors.shift();
-    }
-    return response;
-  } catch (err: any) {
-    const msg = `[handler-throw] ${request.method} ${request.url} -> ${err?.message || err}\n${err?.stack?.slice(0, 500)}`;
-    console.error(msg);
-    lastAuthError = msg;
-    authErrors.push(`${new Date().toISOString()} ${msg}`);
-    if (authErrors.length > 10) authErrors.shift();
-    throw err;
-  }
-};
-(auth as any).handler = wrappedHandler;
-
 const authHandler = toNodeHandler(auth);
 app.all("/api/auth/*", (req, res) => {
-  // Debug: log raw request headers for body parsing investigation
-  console.log(`[auth-headers] ${req.method} ${req.url} httpVersion=${req.httpVersion} content-length=${req.headers["content-length"]} transfer-encoding=${req.headers["transfer-encoding"]} content-type=${req.headers["content-type"]}`);
-  lastAuthRequest = `${req.method} ${req.url} httpVer=${req.httpVersion} content-length=${req.headers["content-length"]} transfer-encoding=${req.headers["transfer-encoding"]}`;
   Promise.resolve(authHandler(req, res)).catch((err: unknown) => {
-    const errDetail = err instanceof Error ? `${err.message}\n${err.stack}` : String(err);
-    console.error("[auth-error]", req.method, req.url, errDetail);
+    console.error("[auth-error]", req.method, req.url, err);
     if (!res.headersSent) {
-      res.status(500).json({ error: "Internal auth error", detail: errDetail });
+      res.status(500).json({ error: "Internal auth error" });
     }
   });
 });
@@ -91,92 +48,6 @@ app.all("/api/auth/*", (req, res) => {
 // Health check
 app.get("/health", (_req, res) => {
   res.json({ status: "healthy", service: "auth-service" });
-});
-
-// Store last auth errors for debugging (keep up to 5)
-let lastAuthError: string = "none";
-const authErrors: string[] = [];
-let lastAuthRequest: string = "none";
-
-// Capture unhandled rejections
-process.on("unhandledRejection", (reason) => {
-  const msg = `[unhandledRejection] ${String(reason)}`;
-  console.error(msg);
-  authErrors.push(`${new Date().toISOString()} ${msg}`);
-  if (authErrors.length > 10) authErrors.shift();
-});
-
-// Debug: expose last auth error
-app.get("/debug/last-error", (_req, res) => {
-  res.json({ lastAuthError, lastAuthRequest, recentErrors: authErrors, serverErrors });
-});
-app.get("/debug/env", (_req, res) => {
-  res.json({
-    DATABASE_URL: process.env.DATABASE_URL ? "set" : "missing",
-    BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET ? "set" : "missing",
-    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || "missing",
-    BREVO_API_KEY: process.env.BREVO_API_KEY ? "set" : "missing",
-    BREVO_SENDER_EMAIL: process.env.BREVO_SENDER_EMAIL || "missing",
-    FRONTEND_URL: process.env.FRONTEND_URL || "missing",
-    NODE_ENV: process.env.NODE_ENV || "unset",
-    NODE_VERSION: process.version,
-  });
-});
-// Debug: test sign-up via raw Web Request to handler
-app.get("/debug/test-handler", async (_req, res) => {
-  try {
-    const baseURL = process.env.BETTER_AUTH_URL || "http://localhost:3005";
-    const webReq = new Request(`${baseURL}/api/auth/sign-up/email`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: "handler-test@example.com",
-        password: "TestPass123!",
-        name: "Handler Test",
-      }),
-    });
-    const response = await originalHandler(webReq);
-    const text = await response.text();
-    res.json({
-      ok: response.ok,
-      status: response.status,
-      headers: Object.fromEntries(response.headers.entries()),
-      body: text.slice(0, 500),
-    });
-  } catch (err: any) {
-    res.json({ ok: false, error: err?.message, stack: err?.stack?.slice(0, 500) });
-  }
-});
-// Debug: test sign-up via Better-Auth internal API
-app.get("/debug/test-signup", async (_req, res) => {
-  try {
-    const result = await auth.api.signUpEmail({
-      body: {
-        email: "internal-test@example.com",
-        password: "TestPass123!",
-        name: "Internal Test",
-      },
-    });
-    res.json({ ok: true, result: JSON.stringify(result).slice(0, 500) });
-  } catch (err: any) {
-    res.json({
-      ok: false,
-      error: err?.message || String(err),
-      stack: err?.stack?.slice(0, 1000),
-      code: err?.code,
-      status: err?.status,
-      body: err?.body ? JSON.stringify(err.body) : undefined,
-    });
-  }
-});
-// Debug: test DB connectivity
-app.get("/debug/db-test", async (_req, res) => {
-  try {
-    const result = await pool.query("SELECT COUNT(*) as count FROM \"user\"");
-    res.json({ ok: true, userCount: result.rows[0].count });
-  } catch (err) {
-    res.json({ ok: false, error: String(err) });
-  }
 });
 
 app.listen(PORT, () => {
