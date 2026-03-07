@@ -102,6 +102,28 @@ app.get("/debug/env", (_req, res) => {
     NODE_VERSION: process.version,
   });
 });
+// Debug: test sign-up via Better-Auth internal API
+app.get("/debug/test-signup", async (_req, res) => {
+  try {
+    const result = await auth.api.signUpEmail({
+      body: {
+        email: "internal-test@example.com",
+        password: "TestPass123!",
+        name: "Internal Test",
+      },
+    });
+    res.json({ ok: true, result: JSON.stringify(result).slice(0, 500) });
+  } catch (err: any) {
+    res.json({
+      ok: false,
+      error: err?.message || String(err),
+      stack: err?.stack?.slice(0, 1000),
+      code: err?.code,
+      status: err?.status,
+      body: err?.body ? JSON.stringify(err.body) : undefined,
+    });
+  }
+});
 // Debug: test DB connectivity
 app.get("/debug/db-test", async (_req, res) => {
   try {
