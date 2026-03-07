@@ -35,42 +35,38 @@ app.post("/api/auth/custom/delete-account", express.json(), deleteAccountHandler
 
 // Better-Auth handler — MUST be BEFORE express.json()
 // Better-Auth parses its own request bodies
-const authHandler = toNodeHandler(auth);
-app.all("/api/auth/*", (req, res) => {
-  // Debug: log incoming request details
-  const reqChunks: Buffer[] = [];
-  req.on("data", (chunk: Buffer) => reqChunks.push(chunk));
-  req.on("end", () => {
-    const body = Buffer.concat(reqChunks).toString("utf8");
-    lastAuthRequest = `${req.method} ${req.url} content-type=${req.headers["content-type"]} body-length=${body.length} body=${body.slice(0, 300)}`;
-    console.log(`[auth-req]`, lastAuthRequest);
-  });
-  // Capture written chunks
-  const chunks: Buffer[] = [];
-  const origWrite = res.write.bind(res);
-  (res as any).write = function (chunk: any, ...rest: any[]) {
-    if (chunk) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk)));
-    return (origWrite as any)(chunk, ...rest);
-  };
-  // Intercept res.end to log what Better-Auth sends
-  const origEnd = res.end.bind(res);
-  (res as any).end = function (...args: any[]) {
-    if (args[0]) chunks.push(Buffer.isBuffer(args[0]) ? args[0] : Buffer.from(String(args[0])));
-    if (res.statusCode >= 400) {
-      const bodyStr = Buffer.concat(chunks).toString("utf8").slice(0, 1000) || "(empty)";
-      lastAuthError = `${req.method} ${req.url} -> ${res.statusCode}: ${bodyStr}`;
-      console.error("[auth-response]", lastAuthError);
-      authErrors.push(`${new Date().toISOString()} ${lastAuthError}`);
+// Wrap auth.handler to intercept the Web Response before it goes to Node
+const originalHandler = auth.handler;
+const wrappedHandler = async (request: Request) => {
+  try {
+    const response = await originalHandler(request);
+    if (response.status >= 400) {
+      // Clone the response so we can read the body without consuming it
+      const cloned = response.clone();
+      const text = await cloned.text();
+      const msg = `[handler-response] ${request.method} ${request.url} -> ${response.status}: body=${text.slice(0, 500) || "(empty)"} headers=${JSON.stringify(Object.fromEntries(response.headers.entries()))}`;
+      console.error(msg);
+      lastAuthError = msg;
+      authErrors.push(`${new Date().toISOString()} ${msg}`);
       if (authErrors.length > 10) authErrors.shift();
     }
-    return origEnd(...args);
-  };
+    return response;
+  } catch (err: any) {
+    const msg = `[handler-throw] ${request.method} ${request.url} -> ${err?.message || err}\n${err?.stack?.slice(0, 500)}`;
+    console.error(msg);
+    lastAuthError = msg;
+    authErrors.push(`${new Date().toISOString()} ${msg}`);
+    if (authErrors.length > 10) authErrors.shift();
+    throw err;
+  }
+};
+(auth as any).handler = wrappedHandler;
+
+const authHandler = toNodeHandler(auth);
+app.all("/api/auth/*", (req, res) => {
   Promise.resolve(authHandler(req, res)).catch((err: unknown) => {
     const errDetail = err instanceof Error ? `${err.message}\n${err.stack}` : String(err);
     console.error("[auth-error]", req.method, req.url, errDetail);
-    lastAuthError = `THROWN: ${req.method} ${req.url} -> ${errDetail}`;
-    authErrors.push(`${new Date().toISOString()} ${lastAuthError}`);
-    if (authErrors.length > 10) authErrors.shift();
     if (!res.headersSent) {
       res.status(500).json({ error: "Internal auth error", detail: errDetail });
     }
