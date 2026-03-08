@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { authClient, AUTH_BASE_URL } from "@site/src/lib/auth-client";
 import useBaseUrl from "@docusaurus/useBaseUrl";
 import PasswordStrength from "./PasswordStrength";
@@ -8,6 +8,23 @@ type Tab = "signup" | "signin";
 type SignupState = "form" | "email_sent" | "verified" | "error";
 
 const POLL_INTERVAL_MS = 4000; // Poll every 4 seconds
+const PENDING_CREDS_KEY = "auth_pending_signup";
+
+// sessionStorage helpers — survive page reloads but not tab close
+function savePendingCredentials(email: string, password: string) {
+  try {
+    sessionStorage.setItem(PENDING_CREDS_KEY, JSON.stringify({ email, password }));
+  } catch { /* private browsing */ }
+}
+function loadPendingCredentials(): { email: string; password: string } | null {
+  try {
+    const raw = sessionStorage.getItem(PENDING_CREDS_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+function clearPendingCredentials() {
+  try { sessionStorage.removeItem(PENDING_CREDS_KEY); } catch { /* noop */ }
+}
 
 interface Props {
   initialTab?: Tab;
@@ -25,12 +42,18 @@ export default function AuthForm({ initialTab = "signin", onSuccess, verificatio
   const { showToast } = useToast();
   const authUrl = useBaseUrl("/auth");
 
+  // On mount, restore pending signup from sessionStorage if the page was reloaded
+  const restored = loadPendingCredentials();
+
   // Sign-up state management (3 visual states)
-  const [signupState, setSignupState] = useState<SignupState>(
-    verificationStatus === "success" ? "verified" :
-    verificationStatus === "error" ? "error" : "form"
-  );
-  const [sentEmail, setSentEmail] = useState("");
+  // If we have pending credentials in sessionStorage, resume "email_sent" state
+  const [signupState, setSignupState] = useState<SignupState>(() => {
+    if (verificationStatus === "success") return "verified";
+    if (verificationStatus === "error") return "error";
+    if (restored) return "email_sent";
+    return "form";
+  });
+  const [sentEmail, setSentEmail] = useState(restored?.email || "");
 
   // Sign-up fields
   const [signupName, setSignupName] = useState("");
@@ -43,15 +66,15 @@ export default function AuthForm({ initialTab = "signin", onSuccess, verificatio
   const [signinPassword, setSigninPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
 
-  // Ref to hold signup credentials for polling auto-sign-in
-  const pendingCredentials = useRef<{ email: string; password: string } | null>(null);
-
   // Poll for verification: while on "email_sent" screen, check verification status
   // via a lightweight endpoint. Once verified, sign in once in Chrome automatically.
+  // Uses sessionStorage so credentials survive mobile tab kill/reload.
   useEffect(() => {
-    if (signupState !== "email_sent" || !pendingCredentials.current) return;
+    if (signupState !== "email_sent") return;
+    const creds = loadPendingCredentials();
+    if (!creds) return;
 
-    const { email, password } = pendingCredentials.current;
+    const { email, password } = creds;
     let cancelled = false;
 
     const poll = async () => {
@@ -65,8 +88,8 @@ export default function AuthForm({ initialTab = "signin", onSuccess, verificatio
           // Email verified — now sign in once in Chrome
           const result = await authClient.signIn.email({ email, password });
           if (!result.error && !cancelled) {
+            clearPendingCredentials();
             setSignupState("verified");
-            pendingCredentials.current = null;
             showToast("Email verified and signed in!", "success");
             setTimeout(() => { onSuccess?.(); }, 1200);
           }
@@ -121,8 +144,8 @@ export default function AuthForm({ initialTab = "signin", onSuccess, verificatio
           return;
         }
 
-        // Store credentials for auto-sign-in polling
-        pendingCredentials.current = { email, password: signupPassword };
+        // Store credentials in sessionStorage (survives mobile tab kill/reload)
+        savePendingCredentials(email, signupPassword);
         // Switch to email_sent state instead of redirecting
         setSentEmail(email);
         setSignupState("email_sent");
@@ -385,7 +408,7 @@ export default function AuthForm({ initialTab = "signin", onSuccess, verificatio
           </p>
           <button
             className="auth-form__back-link"
-            onClick={() => { setSignupState("form"); setError(null); }}
+            onClick={() => { clearPendingCredentials(); setSignupState("form"); setError(null); }}
           >
             Back to sign up
           </button>
@@ -403,9 +426,13 @@ export default function AuthForm({ initialTab = "signin", onSuccess, verificatio
           </div>
           <h2 className="auth-form__status-heading">Email Verified Successfully!</h2>
           <p className="auth-form__status-text">
-            You're signed in. Redirecting you now...
+            {verificationStatus === "success"
+              ? "You can close this window and return to your browser."
+              : "You're signed in. Redirecting you now..."}
           </p>
-          <div className="auth-form__redirect-bar" aria-hidden="true" />
+          {verificationStatus !== "success" && (
+            <div className="auth-form__redirect-bar" aria-hidden="true" />
+          )}
         </div>
       )}
 
