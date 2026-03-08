@@ -33,6 +33,25 @@ app.use(
 app.post("/api/auth/custom/update-background", express.json(), backgroundHandler);
 app.post("/api/auth/custom/delete-account", express.json(), deleteAccountHandler);
 
+// Lightweight endpoint for polling email verification status (used by signup flow)
+app.get("/api/auth/custom/verification-status", async (req, res) => {
+  const email = (req.query.email as string || "").toLowerCase().trim();
+  if (!email) {
+    res.status(400).json({ verified: false });
+    return;
+  }
+  try {
+    const result = await pool.query(
+      `SELECT "emailVerified" FROM "user" WHERE email = $1`,
+      [email]
+    );
+    const verified = result.rows.length > 0 && result.rows[0].emailVerified === true;
+    res.json({ verified });
+  } catch {
+    res.status(500).json({ verified: false });
+  }
+});
+
 // Better-Auth handler — MUST be BEFORE express.json()
 // Better-Auth parses its own request bodies
 const authHandler = toNodeHandler(auth);
