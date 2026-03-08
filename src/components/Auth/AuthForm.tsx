@@ -1,17 +1,20 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { authClient } from "@site/src/lib/auth-client";
 import useBaseUrl from "@docusaurus/useBaseUrl";
 import PasswordStrength from "./PasswordStrength";
 import { useToast } from "./Toast";
 
 type Tab = "signup" | "signin";
+type SignupState = "form" | "email_sent" | "verified" | "error";
 
 interface Props {
   initialTab?: Tab;
   onSuccess?: () => void;
+  /** Set by parent when verification callback detected */
+  verificationStatus?: "success" | "error" | null;
 }
 
-export default function AuthForm({ initialTab = "signin", onSuccess }: Props): React.JSX.Element {
+export default function AuthForm({ initialTab = "signin", onSuccess, verificationStatus }: Props): React.JSX.Element {
   const [tab, setTab] = useState<Tab>(initialTab);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,6 +22,13 @@ export default function AuthForm({ initialTab = "signin", onSuccess }: Props): R
   const [resendCooldown, setResendCooldown] = useState(0);
   const { showToast } = useToast();
   const authUrl = useBaseUrl("/auth");
+
+  // Sign-up state management (3 visual states)
+  const [signupState, setSignupState] = useState<SignupState>(
+    verificationStatus === "success" ? "verified" :
+    verificationStatus === "error" ? "error" : "form"
+  );
+  const [sentEmail, setSentEmail] = useState("");
 
   // Sign-up fields
   const [signupName, setSignupName] = useState("");
@@ -31,17 +41,35 @@ export default function AuthForm({ initialTab = "signin", onSuccess }: Props): R
   const [signinPassword, setSigninPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
 
+  // Auto-redirect after successful verification
+  useEffect(() => {
+    if (signupState === "verified") {
+      const timer = setTimeout(() => {
+        onSuccess?.();
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [signupState, onSuccess]);
+
   const handleSignUp = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
       setIsSubmitting(true);
       setError(null);
 
+      const email = signupEmail.trim().toLowerCase();
+
       try {
+        // Build callbackURL to redirect back to this page after verification
+        const origin = window.location.origin;
+        const basePath = authUrl.replace(/\/$/, "");
+        const callbackURL = `${origin}${basePath}?tab=signup&verified=true`;
+
         const result = await authClient.signUp.email({
           name: signupName.trim(),
-          email: signupEmail.trim().toLowerCase(),
+          email,
           password: signupPassword,
+          callbackURL,
         });
 
         if (result.error) {
@@ -49,15 +77,16 @@ export default function AuthForm({ initialTab = "signin", onSuccess }: Props): R
           return;
         }
 
-        showToast("Verification email sent — check your inbox!", "success");
-        onSuccess?.();
+        // Switch to email_sent state instead of redirecting
+        setSentEmail(email);
+        setSignupState("email_sent");
       } catch {
         setError("Sign up failed. Please try again.");
       } finally {
         setIsSubmitting(false);
       }
     },
-    [signupName, signupEmail, signupPassword, showToast, onSuccess]
+    [signupName, signupEmail, signupPassword, authUrl]
   );
 
   const handleSignIn = useCallback(
@@ -123,25 +152,27 @@ export default function AuthForm({ initialTab = "signin", onSuccess }: Props): R
 
   return (
     <div className="auth-form">
-      {/* Tab toggle */}
-      <div className="auth-form__tabs" role="tablist">
-        <button
-          className={`auth-form__tab ${tab === "signin" ? "auth-form__tab--active" : ""}`}
-          onClick={() => { setTab("signin"); setError(null); }}
-          role="tab"
-          aria-selected={tab === "signin"}
-        >
-          Sign In
-        </button>
-        <button
-          className={`auth-form__tab ${tab === "signup" ? "auth-form__tab--active" : ""}`}
-          onClick={() => { setTab("signup"); setError(null); }}
-          role="tab"
-          aria-selected={tab === "signup"}
-        >
-          Sign Up
-        </button>
-      </div>
+      {/* Tab toggle — hidden when showing post-signup status */}
+      {(tab !== "signup" || signupState === "form") && (
+        <div className="auth-form__tabs" role="tablist">
+          <button
+            className={`auth-form__tab ${tab === "signin" ? "auth-form__tab--active" : ""}`}
+            onClick={() => { setTab("signin"); setError(null); }}
+            role="tab"
+            aria-selected={tab === "signin"}
+          >
+            Sign In
+          </button>
+          <button
+            className={`auth-form__tab ${tab === "signup" ? "auth-form__tab--active" : ""}`}
+            onClick={() => { setTab("signup"); setError(null); }}
+            role="tab"
+            aria-selected={tab === "signup"}
+          >
+            Sign Up
+          </button>
+        </div>
+      )}
 
       {error && (
         <div className="auth-form__error" role="alert">
@@ -210,9 +241,9 @@ export default function AuthForm({ initialTab = "signin", onSuccess }: Props): R
         </form>
       )}
 
-      {/* Sign-Up Form */}
-      {tab === "signup" && (
-        <form onSubmit={handleSignUp} className="auth-form__fields">
+      {/* Sign-Up: 3 visual states */}
+      {tab === "signup" && signupState === "form" && (
+        <form onSubmit={handleSignUp} className="auth-form__fields auth-form__fade-in">
           <div className="auth-form__field">
             <label htmlFor="signup-name">Name</label>
             <input
@@ -270,6 +301,85 @@ export default function AuthForm({ initialTab = "signin", onSuccess }: Props): R
             {isSubmitting ? "Creating account..." : "Sign Up"}
           </button>
         </form>
+      )}
+
+      {/* Sign-Up: Email Sent State */}
+      {tab === "signup" && signupState === "email_sent" && (
+        <div className="auth-form__status auth-form__fade-in" role="status" aria-live="polite">
+          <div className="auth-form__status-icon auth-form__status-icon--email" aria-hidden="true">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+              <path d="M22 4L12 13L2 4" />
+            </svg>
+          </div>
+          <h2 className="auth-form__status-heading">Check your email</h2>
+          <p className="auth-form__status-text">
+            We've sent a verification link to{" "}
+            <strong>{sentEmail}</strong>.
+            Please check your inbox and spam folder.
+          </p>
+          <p className="auth-form__status-hint">
+            Didn't receive it? Check your spam folder or{" "}
+            <button
+              className="auth-form__resend-link"
+              onClick={async () => {
+                try {
+                  await authClient.sendVerificationEmail({ email: sentEmail });
+                  showToast("Verification email resent!", "success");
+                } catch {
+                  showToast("Failed to resend. Please try again.", "error");
+                }
+              }}
+            >
+              resend the email
+            </button>.
+          </p>
+          <button
+            className="auth-form__back-link"
+            onClick={() => { setSignupState("form"); setError(null); }}
+          >
+            Back to sign up
+          </button>
+        </div>
+      )}
+
+      {/* Sign-Up: Verified State */}
+      {tab === "signup" && signupState === "verified" && (
+        <div className="auth-form__status auth-form__fade-in" role="status" aria-live="polite">
+          <div className="auth-form__status-icon auth-form__status-icon--success" aria-hidden="true">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M8 12l3 3 5-5" />
+            </svg>
+          </div>
+          <h2 className="auth-form__status-heading">Email Verified Successfully!</h2>
+          <p className="auth-form__status-text">
+            Your account is ready. Redirecting you now...
+          </p>
+          <div className="auth-form__redirect-bar" aria-hidden="true" />
+        </div>
+      )}
+
+      {/* Sign-Up: Verification Error State */}
+      {tab === "signup" && signupState === "error" && (
+        <div className="auth-form__status auth-form__fade-in" role="alert">
+          <div className="auth-form__status-icon auth-form__status-icon--error" aria-hidden="true">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M15 9l-6 6M9 9l6 6" />
+            </svg>
+          </div>
+          <h2 className="auth-form__status-heading">Verification Failed</h2>
+          <p className="auth-form__status-text">
+            The verification link is invalid or has expired.
+          </p>
+          <button
+            className="auth-form__submit"
+            onClick={() => { setSignupState("form"); setError(null); }}
+          >
+            Try signing up again
+          </button>
+        </div>
       )}
     </div>
   );
