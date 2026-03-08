@@ -1,7 +1,7 @@
 import { createAuthClient } from "better-auth/react";
 import siteConfig from "@generated/docusaurus.config";
 
-const AUTH_BASE_URL =
+export const AUTH_BASE_URL =
   (siteConfig.customFields?.authApiUrl as string) || "http://localhost:3005";
 
 export const authClient = createAuthClient({

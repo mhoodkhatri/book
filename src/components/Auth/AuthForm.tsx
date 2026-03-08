@@ -1,11 +1,13 @@
-import React, { useState, useCallback, useEffect } from "react";
-import { authClient } from "@site/src/lib/auth-client";
+import React, { useState, useCallback, useEffect, useRef } from "react";
+import { authClient, AUTH_BASE_URL } from "@site/src/lib/auth-client";
 import useBaseUrl from "@docusaurus/useBaseUrl";
 import PasswordStrength from "./PasswordStrength";
 import { useToast } from "./Toast";
 
 type Tab = "signup" | "signin";
 type SignupState = "form" | "email_sent" | "verified" | "error";
+
+const POLL_INTERVAL_MS = 4000; // Poll every 4 seconds
 
 interface Props {
   initialTab?: Tab;
@@ -41,15 +43,44 @@ export default function AuthForm({ initialTab = "signin", onSuccess, verificatio
   const [signinPassword, setSigninPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
 
-  // Auto-redirect after successful verification
+  // Ref to hold signup credentials for polling auto-sign-in
+  const pendingCredentials = useRef<{ email: string; password: string } | null>(null);
+
+  // Poll for verification: while on "email_sent" screen, check verification status
+  // via a lightweight endpoint. Once verified, sign in once in Chrome automatically.
   useEffect(() => {
-    if (signupState === "verified") {
-      const timer = setTimeout(() => {
-        onSuccess?.();
-      }, 1200);
-      return () => clearTimeout(timer);
-    }
-  }, [signupState, onSuccess]);
+    if (signupState !== "email_sent" || !pendingCredentials.current) return;
+
+    const { email, password } = pendingCredentials.current;
+    let cancelled = false;
+
+    const poll = async () => {
+      try {
+        // Lightweight check — no failed-login side effects
+        const res = await fetch(
+          `${AUTH_BASE_URL}/api/auth/custom/verification-status?email=${encodeURIComponent(email)}`
+        );
+        const data = await res.json();
+        if (data.verified && !cancelled) {
+          // Email verified — now sign in once in Chrome
+          const result = await authClient.signIn.email({ email, password });
+          if (!result.error && !cancelled) {
+            setSignupState("verified");
+            pendingCredentials.current = null;
+            showToast("Email verified and signed in!", "success");
+            setTimeout(() => { onSuccess?.(); }, 1200);
+          }
+        }
+      } catch {
+        // Network error — keep polling
+      }
+    };
+
+    const id = setInterval(poll, POLL_INTERVAL_MS);
+    poll();
+
+    return () => { cancelled = true; clearInterval(id); };
+  }, [signupState, showToast, onSuccess]);
 
   const handleSignUp = useCallback(
     async (e: React.FormEvent) => {
@@ -77,6 +108,8 @@ export default function AuthForm({ initialTab = "signin", onSuccess, verificatio
           return;
         }
 
+        // Store credentials for auto-sign-in polling
+        pendingCredentials.current = { email, password: signupPassword };
         // Switch to email_sent state instead of redirecting
         setSentEmail(email);
         setSignupState("email_sent");
@@ -319,6 +352,9 @@ export default function AuthForm({ initialTab = "signin", onSuccess, verificatio
             Please check your inbox and spam folder.
           </p>
           <p className="auth-form__status-hint">
+            This page will automatically sign you in once you verify.
+          </p>
+          <p className="auth-form__status-hint">
             Didn't receive it? Check your spam folder or{" "}
             <button
               className="auth-form__resend-link"
@@ -354,7 +390,7 @@ export default function AuthForm({ initialTab = "signin", onSuccess, verificatio
           </div>
           <h2 className="auth-form__status-heading">Email Verified Successfully!</h2>
           <p className="auth-form__status-text">
-            Your account is ready. Redirecting you now...
+            You're signed in. Redirecting you now...
           </p>
           <div className="auth-form__redirect-bar" aria-hidden="true" />
         </div>
