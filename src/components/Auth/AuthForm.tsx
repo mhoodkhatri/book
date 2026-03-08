@@ -79,7 +79,20 @@ export default function AuthForm({ initialTab = "signin", onSuccess, verificatio
     const id = setInterval(poll, POLL_INTERVAL_MS);
     poll();
 
-    return () => { cancelled = true; clearInterval(id); };
+    // Mobile browsers freeze timers on background tabs.
+    // When user switches back from Gmail, poll immediately.
+    const onVisible = () => {
+      if (document.visibilityState === "visible" && !cancelled) {
+        poll();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [signupState, showToast, onSuccess]);
 
   const handleSignUp = useCallback(
