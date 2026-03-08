@@ -676,13 +676,12 @@ blockquote {
 }
 
 .auth-form__resend-link {
-  display: block;
+  display: inline;
   background: none;
   border: none;
   color: var(--ifm-color-primary);
   cursor: pointer;
-  margin-top: 0.5rem;
-  font-size: 0.85rem;
+  font-size: inherit;
   padding: 0;
   text-decoration: underline;
 }
@@ -690,6 +689,130 @@ blockquote {
 .auth-form__resend-link:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Fade-in animation for state transitions */
+@keyframes authFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.auth-form__fade-in {
+  animation: authFadeIn 0.35s ease-out;
+}
+
+/* Status states (email sent, verified, error) */
+.auth-form__status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem 0.5rem;
+  gap: 0.75rem;
+}
+
+.auth-form__status-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  margin-bottom: 0.25rem;
+}
+
+.auth-form__status-icon--email {
+  background: #eff6ff;
+  color: var(--ifm-color-primary);
+}
+
+[data-theme='dark'] .auth-form__status-icon--email {
+  background: rgba(37, 99, 235, 0.15);
+}
+
+.auth-form__status-icon--success {
+  background: #ecfdf5;
+  color: #16a34a;
+}
+
+[data-theme='dark'] .auth-form__status-icon--success {
+  background: rgba(22, 163, 74, 0.15);
+  color: #4ade80;
+}
+
+.auth-form__status-icon--error {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+[data-theme='dark'] .auth-form__status-icon--error {
+  background: rgba(220, 38, 38, 0.15);
+  color: #fca5a5;
+}
+
+.auth-form__status-heading {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.auth-form__status-text {
+  font-size: 0.95rem;
+  color: var(--ifm-color-emphasis-700);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.auth-form__status-hint {
+  font-size: 0.85rem;
+  color: var(--ifm-color-emphasis-500);
+  margin: 0;
+}
+
+.auth-form__back-link {
+  background: none;
+  border: none;
+  color: var(--ifm-color-emphasis-500);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0;
+  margin-top: 0.5rem;
+  text-decoration: underline;
+}
+
+.auth-form__back-link:hover {
+  color: var(--ifm-color-primary);
+}
+
+/* Redirect progress bar */
+@keyframes authRedirectBar {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+.auth-form__redirect-bar {
+  width: 100%;
+  height: 3px;
+  background: var(--ifm-color-emphasis-200);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+  position: relative;
+}
+
+.auth-form__redirect-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #16a34a;
+  border-radius: 2px;
+  animation: authRedirectBar 1.2s ease-in-out forwards;
+}
+
+[data-theme='dark'] .auth-form__redirect-bar::after {
+  background: #4ade80;
 }
 
 .auth-form__success {
@@ -1313,5 +1436,31 @@ blockquote {
 
   .background-form__actions {
     flex-direction: column;
+  }
+
+  .auth-form__status {
+    padding: 1rem 0.25rem;
+  }
+
+  .auth-form__status-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .auth-form__status-icon svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .auth-form__status-heading {
+    font-size: 1.1rem;
+  }
+
+  .auth-form__status-text {
+    font-size: 0.88rem;
+  }
+
+  .auth-form__status-hint {
+    font-size: 0.8rem;
   }
 }

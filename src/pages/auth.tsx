@@ -12,21 +12,27 @@ function AuthPageContent(): React.JSX.Element {
   const { user } = useAuth();
   const baseUrl = useBaseUrl("/");
 
-  const { tab, redirect, token } = useMemo(() => {
+  const { tab, redirect, token, verified, verificationError } = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
     return {
       tab: (params.get("tab") as Tab) || "signin",
       redirect: params.get("redirect") || baseUrl,
       token: params.get("token") || "",
+      verified: params.get("verified") === "true",
+      verificationError: params.get("error") === "verification",
     };
   }, [baseUrl]);
+
+  // Determine verification status from URL params
+  const verificationStatus: "success" | "error" | null =
+    verified ? "success" : verificationError ? "error" : null;
 
   const handleSuccess = () => {
     window.location.href = redirect;
   };
 
-  // If already authenticated, redirect
-  if (user) {
+  // If already authenticated and NOT showing verification success, redirect
+  if (user && !verified) {
     window.location.href = redirect;
     return <div className="auth-page__loading">Redirecting...</div>;
   }
@@ -34,18 +40,26 @@ function AuthPageContent(): React.JSX.Element {
   return (
     <div className="auth-page">
       <div className="auth-page__card">
-        <h1 className="auth-page__title">
-          {tab === "reset" ? "Reset Password" : "Welcome"}
-        </h1>
-        <p className="auth-page__subtitle">
-          {tab === "reset"
-            ? "Enter your new password below."
-            : "Sign in to access interactive features like the AI chatbot and translation."}
-        </p>
+        {!verified && !verificationError && (
+          <>
+            <h1 className="auth-page__title">
+              {tab === "reset" ? "Reset Password" : "Welcome"}
+            </h1>
+            <p className="auth-page__subtitle">
+              {tab === "reset"
+                ? "Enter your new password below."
+                : "Sign in to access interactive features like the AI chatbot and translation."}
+            </p>
+          </>
+        )}
         {tab === "reset" ? (
           <ResetPasswordForm token={token} />
         ) : (
-          <AuthForm initialTab={tab === "signup" ? "signup" : "signin"} onSuccess={handleSuccess} />
+          <AuthForm
+            initialTab={tab === "signup" ? "signup" : "signin"}
+            onSuccess={handleSuccess}
+            verificationStatus={verificationStatus}
+          />
         )}
       </div>
     </div>
