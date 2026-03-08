@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="ros2-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="ros2-light" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <filter id="ros2-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Central hub node -->
+  <circle cx="24" cy="24" r="8" fill="url(#ros2-grad)" filter="url(#ros2-glow)"/>
+  <circle cx="24" cy="24" r="5" fill="#1e3a8a" opacity="0.3"/>
+  <circle cx="24" cy="24" r="3" fill="#bfdbfe"/>
+
+  <!-- Connection lines with pulse effect -->
+  <line x1="24" y1="16" x2="24" y2="6" stroke="url(#ros2-light)" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="31" y1="28" x2="40" y2="34" stroke="url(#ros2-light)" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="17" y1="28" x2="8" y2="34" stroke="url(#ros2-light)" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="30" y1="20" x2="38" y2="14" stroke="url(#ros2-light)" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+  <line x1="18" y1="20" x2="10" y2="14" stroke="url(#ros2-light)" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+
+  <!-- Outer nodes -->
+  <circle cx="24" cy="5" r="4" fill="url(#ros2-grad)"/>
+  <circle cx="24" cy="5" r="2" fill="#bfdbfe"/>
+
+  <circle cx="41" cy="36" r="4" fill="url(#ros2-grad)"/>
+  <circle cx="41" cy="36" r="2" fill="#bfdbfe"/>
+
+  <circle cx="7" cy="36" r="4" fill="url(#ros2-grad)"/>
+  <circle cx="7" cy="36" r="2" fill="#bfdbfe"/>
+
+  <!-- Secondary nodes -->
+  <circle cx="40" cy="12" r="3" fill="url(#ros2-light)" opacity="0.8"/>
+  <circle cx="40" cy="12" r="1.5" fill="#dbeafe"/>
+
+  <circle cx="8" cy="12" r="3" fill="url(#ros2-light)" opacity="0.8"/>
+  <circle cx="8" cy="12" r="1.5" fill="#dbeafe"/>
+
+  <!-- Data flow indicators -->
+  <circle cx="24" cy="11" r="1.5" fill="#60a5fa" opacity="0.9"/>
+  <circle cx="35" cy="31" r="1.5" fill="#60a5fa" opacity="0.9"/>
+  <circle cx="13" cy="31" r="1.5" fill="#60a5fa" opacity="0.9"/>
+</svg>

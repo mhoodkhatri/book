@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="sim-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#0891b2"/>
+    </linearGradient>
+    <linearGradient id="sim-dark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0891b2"/>
+      <stop offset="100%" stop-color="#0e7490"/>
+    </linearGradient>
+    <linearGradient id="sim-screen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#083344"/>
+      <stop offset="100%" stop-color="#164e63"/>
+    </linearGradient>
+    <filter id="sim-glow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="0.8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Monitor frame -->
+  <rect x="6" y="6" width="36" height="28" rx="3" fill="url(#sim-dark)"/>
+  <rect x="8" y="8" width="32" height="24" rx="2" fill="url(#sim-screen)"/>
+
+  <!-- 3D Grid perspective -->
+  <g opacity="0.6">
+    <line x1="10" y1="28" x2="24" y2="18" stroke="#22d3ee" stroke-width="0.8"/>
+    <line x1="18" y1="28" x2="28" y2="18" stroke="#22d3ee" stroke-width="0.8"/>
+    <line x1="26" y1="28" x2="32" y2="18" stroke="#22d3ee" stroke-width="0.8"/>
+    <line x1="34" y1="28" x2="36" y2="18" stroke="#22d3ee" stroke-width="0.8"/>
+    <line x1="10" y1="28" x2="38" y2="28" stroke="#22d3ee" stroke-width="0.8"/>
+    <line x1="14" y1="24" x2="36" y2="24" stroke="#22d3ee" stroke-width="0.6"/>
+    <line x1="18" y1="20" x2="34" y2="20" stroke="#22d3ee" stroke-width="0.5"/>
+  </g>
+
+  <!-- Digital twin robot silhouette -->
+  <g filter="url(#sim-glow)">
+    <circle cx="24" cy="14" r="3" fill="url(#sim-grad)"/>
+    <rect x="21" y="17" width="6" height="7" rx="1" fill="url(#sim-grad)"/>
+    <rect x="18" y="18" width="3" height="5" rx="1" fill="#22d3ee" opacity="0.8"/>
+    <rect x="27" y="18" width="3" height="5" rx="1" fill="#22d3ee" opacity="0.8"/>
+  </g>
+
+  <!-- Scan lines effect -->
+  <line x1="8" y1="12" x2="40" y2="12" stroke="#67e8f9" stroke-width="0.5" opacity="0.3"/>
+  <line x1="8" y1="16" x2="40" y2="16" stroke="#67e8f9" stroke-width="0.5" opacity="0.2"/>
+
+  <!-- Monitor stand -->
+  <rect x="20" y="34" width="8" height="3" fill="url(#sim-dark)"/>
+  <rect x="16" y="37" width="16" height="3" rx="1.5" fill="url(#sim-grad)"/>
+
+  <!-- Status indicator -->
+  <circle cx="36" cy="10" r="1.5" fill="#34d399"/>
+
+  <!-- Corner brackets -->
+  <path d="M10 10 L10 13 M10 10 L13 10" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
+  <path d="M38 10 L38 13 M38 10 L35 10" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
+</svg>
