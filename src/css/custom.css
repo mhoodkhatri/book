@@ -1045,8 +1045,17 @@ blockquote {
 
 /* Invisible placeholder — reserves button space without pulsing/blinking */
 .auth-navbar__placeholder {
-  width: 72px;
   height: 32px;
+  border-radius: 6px;
+}
+
+.auth-navbar__placeholder--btn {
+  width: 72px;
+}
+
+.auth-navbar__placeholder--avatar {
+  width: 32px;
+  border-radius: 50%;
 }
 
 .auth-navbar__signin-btn {
@@ -1192,8 +1201,15 @@ blockquote {
   }
 
   .auth-navbar__placeholder {
-    width: 62px;
     height: 28px;
+  }
+
+  .auth-navbar__placeholder--btn {
+    width: 62px;
+  }
+
+  .auth-navbar__placeholder--avatar {
+    width: 28px;
   }
 }
 
