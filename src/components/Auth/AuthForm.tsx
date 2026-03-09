@@ -425,13 +425,29 @@ export default function AuthForm({ initialTab = "signin", onSuccess, verificatio
             </svg>
           </div>
           <h2 className="auth-form__status-heading">Email Verified Successfully!</h2>
-          <p className="auth-form__status-text">
-            {verificationStatus === "success"
-              ? "You can close this window and return to your browser."
-              : "You're signed in. Redirecting you now..."}
-          </p>
-          {verificationStatus !== "success" && (
-            <div className="auth-form__redirect-bar" aria-hidden="true" />
+          {verificationStatus === "success" ? (
+            <>
+              <p className="auth-form__status-text">
+                Your account is ready. Sign in to get started.
+              </p>
+              <button
+                className="auth-form__submit"
+                onClick={() => {
+                  setSignupState("form");
+                  setTab("signin");
+                  setError(null);
+                }}
+              >
+                Sign In Now
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="auth-form__status-text">
+                You're signed in. Redirecting you now...
+              </p>
+              <div className="auth-form__redirect-bar" aria-hidden="true" />
+            </>
           )}
         </div>
       )}
