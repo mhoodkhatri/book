@@ -38,12 +38,27 @@ export default function AuthNavbar(): React.JSX.Element {
     showToast("Signed out successfully.", "success");
   };
 
+  // Read cached auth state to prevent sign-in button flash on page load
+  const wasPreviouslySignedIn = (() => {
+    try {
+      return localStorage.getItem("auth-cached-signed-in") === "true";
+    } catch {
+      return false;
+    }
+  })();
+
   let content: React.JSX.Element;
 
   if (isPending) {
+    // While loading, show placeholder matching the expected final state
+    // If user was previously signed in, show avatar-shaped placeholder
+    // If not, show sign-in button-shaped placeholder
     content = (
       <div className="auth-navbar">
-        <div className="auth-navbar__placeholder" aria-label="Loading auth state" />
+        <div
+          className={`auth-navbar__placeholder ${wasPreviouslySignedIn ? "auth-navbar__placeholder--avatar" : "auth-navbar__placeholder--btn"}`}
+          aria-label="Loading auth state"
+        />
       </div>
     );
   } else if (!user) {
