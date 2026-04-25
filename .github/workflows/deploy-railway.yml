@@ -1,0 +1,51 @@
+name: Deploy Backend Services to Railway
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-auth-service:
+    runs-on: ubuntu-latest
+    name: Deploy auth-service to Railway
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli@3.11.4
+
+      - name: Deploy auth-service
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          cd auth-service
+          railway up --service auth-service --detach
+          echo "auth-service deployed"
+
+  deploy-backend:
+    runs-on: ubuntu-latest
+    name: Deploy FastAPI backend to Railway
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli@3.11.4
+
+      - name: Deploy backend
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          cd backend
+          railway up --service backend --detach
+          echo "backend deployed"

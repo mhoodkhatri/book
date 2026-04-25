@@ -55,13 +55,18 @@ export function AuthContextProvider({
     return () => window.removeEventListener("storage", handleStorage);
   }, [refetch]);
 
-  // Notify other tabs when auth state changes
+  // Cache auth state & notify other tabs when auth state changes
   useEffect(() => {
     if (!isPending) {
       try {
         localStorage.setItem(
           "better-auth-session-update",
           String(Date.now())
+        );
+        // Cache whether user is signed in to prevent sign-in button flash on reload
+        localStorage.setItem(
+          "auth-cached-signed-in",
+          user ? "true" : "false"
         );
       } catch {
         // localStorage may be unavailable in SSR or private browsing

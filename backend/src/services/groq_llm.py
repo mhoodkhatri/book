@@ -58,6 +58,7 @@ class GroqService:
         messages: list[dict],
         max_tokens: int = 2048,
         temperature: float = 0.7,
+        model: str | None = None,
     ) -> str:
         """
         Generate a complete response (non-streaming).
@@ -80,7 +81,7 @@ class GroqService:
             })
 
         response = self.client.chat.completions.create(
-            model=self.model,
+            model=model or self.model,
             messages=groq_messages,
             temperature=temperature,
             max_tokens=max_tokens,

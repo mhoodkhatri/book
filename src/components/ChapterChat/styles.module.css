@@ -399,6 +399,12 @@
   animation: popupFadeIn 0.15s ease-out;
 }
 
+@media (max-width: 996px) {
+  .selectionPopup {
+    transform: translate(-50%, 0);
+  }
+}
+
 @keyframes popupFadeIn {
   from {
     opacity: 0;

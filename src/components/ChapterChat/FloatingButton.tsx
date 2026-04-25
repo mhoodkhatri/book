@@ -32,12 +32,16 @@ export function FloatingChatButton({
   };
 
   const handleAskAI = useCallback((selectedText: string) => {
+    if (!isAuthenticated) {
+      setShowLockedModal(true);
+      return;
+    }
     // Set the initial message with the selected text
     const message = `Explain this to me: "${selectedText}"`;
     setInitialMessage(message);
     // Open the chat
     setIsOpen(true);
-  }, []);
+  }, [isAuthenticated]);
 
   const handleMessageSent = useCallback(() => {
     // Clear initial message after it's been sent

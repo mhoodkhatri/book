@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import { getCachedTranslation, cacheTranslation } from './cache';
+import { useAuth } from '@site/src/contexts/AuthContext';
 import { useAuthGuard } from '@site/src/hooks/useAuthGuard';
 import LockedFeatureModal from '@site/src/components/Auth/LockedFeatureModal';
 import styles from './styles.module.css';
@@ -19,6 +20,7 @@ export default function TranslationButton({
   chapterTitle,
 }: Props): React.JSX.Element {
   const { isAuthenticated, loginUrl } = useAuthGuard();
+  const { session } = useAuth();
   const { siteConfig } = useDocusaurusContext();
   const apiUrl =
     (siteConfig.customFields?.chatApiUrl as string) || 'http://localhost:8000';
@@ -129,7 +131,10 @@ export default function TranslationButton({
     try {
       const response = await fetch(`${apiUrl}/api/translate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.token ? { 'Authorization': `Bearer ${session.token as string}` } : {}),
+        },
         credentials: 'include',
         body: JSON.stringify({
           chapter_id: chapterId,

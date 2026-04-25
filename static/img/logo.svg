@@ -1,26 +1,50 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
   <defs>
-    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#2e8555;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#25c2a0;stop-opacity:1" />
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1e40af"/>
+    </linearGradient>
+    <linearGradient id="g3" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#93c5fd"/>
+      <stop offset="100%" stop-color="#2563eb"/>
     </linearGradient>
   </defs>
-  <!-- Robot head outline -->
-  <rect x="20" y="15" width="60" height="50" rx="10" fill="url(#grad)" />
-  <!-- Eyes -->
-  <circle cx="35" cy="35" r="8" fill="#ffffff" />
-  <circle cx="65" cy="35" r="8" fill="#ffffff" />
-  <circle cx="35" cy="35" r="4" fill="#1a1a2e" />
-  <circle cx="65" cy="35" r="4" fill="#1a1a2e" />
-  <!-- Antenna -->
-  <line x1="50" y1="15" x2="50" y2="5" stroke="#2e8555" stroke-width="3" />
-  <circle cx="50" cy="5" r="4" fill="#25c2a0" />
-  <!-- Mouth/speaker grille -->
-  <rect x="35" y="50" width="30" height="8" rx="2" fill="#1a1a2e" opacity="0.3" />
-  <line x1="38" y1="54" x2="62" y2="54" stroke="#ffffff" stroke-width="1" />
-  <!-- Body hint -->
-  <rect x="30" y="65" width="40" height="25" rx="5" fill="url(#grad)" opacity="0.7" />
-  <!-- Arms -->
-  <rect x="15" y="70" width="10" height="15" rx="3" fill="url(#grad)" opacity="0.5" />
-  <rect x="75" y="70" width="10" height="15" rx="3" fill="url(#grad)" opacity="0.5" />
+
+  <!-- Intricate outer pattern - interlocking petals/curves -->
+
+  <!-- Top petal -->
+  <path d="M50 4 Q70 20 58 40 Q50 32 42 40 Q30 20 50 4" fill="url(#g1)"/>
+
+  <!-- Right petal -->
+  <path d="M96 50 Q80 70 60 58 Q68 50 60 42 Q80 30 96 50" fill="url(#g2)"/>
+
+  <!-- Bottom petal -->
+  <path d="M50 96 Q30 80 42 60 Q50 68 58 60 Q70 80 50 96" fill="url(#g1)"/>
+
+  <!-- Left petal -->
+  <path d="M4 50 Q20 30 40 42 Q32 50 40 58 Q20 70 4 50" fill="url(#g2)"/>
+
+  <!-- Diagonal connectors - top-right -->
+  <path d="M65 18 Q78 22 82 35" stroke="url(#g3)" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+  <!-- Diagonal connectors - bottom-right -->
+  <path d="M82 65 Q78 78 65 82" stroke="url(#g3)" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+  <!-- Diagonal connectors - bottom-left -->
+  <path d="M35 82 Q22 78 18 65" stroke="url(#g3)" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+  <!-- Diagonal connectors - top-left -->
+  <path d="M18 35 Q22 22 35 18" stroke="url(#g3)" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+  <!-- Inner arrow pointing up (progress/AI) -->
+  <polygon points="35,62 50,30 65,62 50,50" fill="url(#g3)"/>
+
+  <!-- Center core -->
+  <circle cx="50" cy="50" r="5" fill="#1e40af"/>
+  <circle cx="50" cy="50" r="2.5" fill="#dbeafe"/>
+
 </svg>
