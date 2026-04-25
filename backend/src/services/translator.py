@@ -85,9 +85,10 @@ class TranslatorService:
         terms = ", ".join(PRESERVE_TERMS)
         return TRANSLATION_PROMPT.format(terms=terms, content=content)
 
-    # Chunk size in chars (~1 token ≈ 4 chars). 3000 chars ≈ 750 tokens.
-    # Keeps prompt + max_tokens under Groq free-tier 6000 TPM limit.
-    CHUNK_CHAR_LIMIT = 3000
+    # Smaller chunks translated in parallel beat one big call: DeepSeek
+    # latency scales with output tokens, so N parallel small calls finish
+    # in ~max(call_i) instead of sum(call_i).
+    CHUNK_CHAR_LIMIT = 3500
 
     def _chunk_html(self, html: str) -> list[str]:
         """Split HTML into chunks under CHUNK_CHAR_LIMIT chars, breaking at top-level tags."""
@@ -106,7 +107,7 @@ class TranslatorService:
         return chunks if chunks else [html]
 
     async def translate(self, content: str, chapter_title: str = "") -> tuple[str, dict]:
-        import re as _re
+        import asyncio
         start_time = time.time()
 
         processable_html, placeholders = self._extract_and_placeholder_skipped(content)
@@ -117,21 +118,19 @@ class TranslatorService:
             "preserving all HTML structure and formatting exactly."
         )
 
-        # DeepSeek has generous rate limits — no chunking required for normal chapters,
-        # but keep chunking for very large chapters to stay under context window.
-        chunks = self._chunk_html(processable_html) if len(processable_html) > 12000 else [processable_html]
-        translated_parts: list[str] = []
-        for i, chunk in enumerate(chunks):
+        chunks = self._chunk_html(processable_html)
+
+        async def _translate_chunk(chunk: str) -> str:
             prompt = self._build_prompt(chunk)
-            messages = [{"role": "user", "content": prompt}]
-            part = self.deepseek.generate_response(
+            part = await self.deepseek.agenerate_response(
                 system_prompt=system_prompt,
-                messages=messages,
-                max_tokens=8192,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=4096,
                 temperature=0.3,
             )
-            translated_parts.append(self._clean_llm_response(part))
+            return self._clean_llm_response(part)
 
+        translated_parts = await asyncio.gather(*(_translate_chunk(c) for c in chunks))
         translated_html = "".join(translated_parts)
         final_html = self._restore_placeholders(translated_html, placeholders)
 
