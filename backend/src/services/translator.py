@@ -115,6 +115,7 @@ class TranslatorService:
             messages=messages,
             max_tokens=8192,
             temperature=0.3,
+            model="llama-3.1-8b-instant",
         )
 
         # Step 4: Clean up LLM response (remove markdown fences if present)
