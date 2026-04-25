@@ -8,7 +8,7 @@ import httpx
 from src.config import get_settings
 
 
-HF_API_URL = "https://api-inference.huggingface.co/pipeline/feature-extraction/{model}"
+HF_API_URL = "https://router.huggingface.co/hf-inference/models/{model}/pipeline/feature-extraction"
 
 
 class EmbeddingService:
