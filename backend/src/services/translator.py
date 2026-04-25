@@ -83,52 +83,60 @@ class TranslatorService:
         terms = ", ".join(PRESERVE_TERMS)
         return TRANSLATION_PROMPT.format(terms=terms, content=content)
 
+    # Chunk size in chars (~1 token ≈ 4 chars). 3000 chars ≈ 750 tokens.
+    # Keeps prompt + max_tokens under Groq free-tier 6000 TPM limit.
+    CHUNK_CHAR_LIMIT = 3000
+
+    def _chunk_html(self, html: str) -> list[str]:
+        """Split HTML into chunks under CHUNK_CHAR_LIMIT chars, breaking at top-level tags."""
+        soup = BeautifulSoup(html, "html.parser")
+        chunks: list[str] = []
+        current = ""
+        for el in soup.find_all(recursive=False) if soup.find_all(recursive=False) else [soup]:
+            piece = str(el)
+            if len(current) + len(piece) > self.CHUNK_CHAR_LIMIT and current:
+                chunks.append(current)
+                current = piece
+            else:
+                current += piece
+        if current:
+            chunks.append(current)
+        return chunks if chunks else [html]
+
     async def translate(self, content: str, chapter_title: str = "") -> tuple[str, dict]:
-        """
-        Translate HTML content from English to Urdu.
-
-        Args:
-            content: HTML content to translate
-            chapter_title: Chapter title for context
-
-        Returns:
-            Tuple of (translated_html, metadata_dict)
-        """
         start_time = time.time()
 
-        # Step 1: Extract and placeholder skip-tags
         processable_html, placeholders = self._extract_and_placeholder_skipped(content)
 
-        # Step 2: Build translation prompt
-        prompt = self._build_prompt(processable_html)
-
-        # Step 3: Call Groq LLM for translation
-        messages = [{"role": "user", "content": prompt}]
         system_prompt = (
             "You are a professional English-to-Urdu translator specializing in "
             "technical and educational content. You translate HTML content while "
             "preserving all HTML structure and formatting exactly."
         )
 
-        translated_html = self.groq.generate_response(
-            system_prompt=system_prompt,
-            messages=messages,
-            max_tokens=8192,
-            temperature=0.3,
-            model="llama-3.1-8b-instant",
-        )
+        chunks = self._chunk_html(processable_html)
+        translated_parts: list[str] = []
+        for chunk in chunks:
+            prompt = self._build_prompt(chunk)
+            messages = [{"role": "user", "content": prompt}]
+            part = self.groq.generate_response(
+                system_prompt=system_prompt,
+                messages=messages,
+                max_tokens=2048,
+                temperature=0.3,
+                model="llama-3.1-8b-instant",
+            )
+            translated_parts.append(self._clean_llm_response(part))
 
-        # Step 4: Clean up LLM response (remove markdown fences if present)
-        translated_html = self._clean_llm_response(translated_html)
-
-        # Step 5: Restore placeholders with original skip-tag content
+        translated_html = "".join(translated_parts)
         final_html = self._restore_placeholders(translated_html, placeholders)
 
         elapsed_ms = int((time.time() - start_time) * 1000)
         metadata = {
             "latency_ms": elapsed_ms,
-            "model": self.groq.model,
+            "model": "llama-3.1-8b-instant",
             "placeholders_restored": len(placeholders),
+            "chunks_translated": len(chunks),
         }
 
         return final_html, metadata
