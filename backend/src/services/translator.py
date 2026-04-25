@@ -104,6 +104,7 @@ class TranslatorService:
         return chunks if chunks else [html]
 
     async def translate(self, content: str, chapter_title: str = "") -> tuple[str, dict]:
+        import re as _re
         start_time = time.time()
 
         processable_html, placeholders = self._extract_and_placeholder_skipped(content)
@@ -116,16 +117,35 @@ class TranslatorService:
 
         chunks = self._chunk_html(processable_html)
         translated_parts: list[str] = []
-        for chunk in chunks:
+        for i, chunk in enumerate(chunks):
             prompt = self._build_prompt(chunk)
             messages = [{"role": "user", "content": prompt}]
-            part = self.groq.generate_response(
-                system_prompt=system_prompt,
-                messages=messages,
-                max_tokens=2048,
-                temperature=0.3,
-                model="llama-3.1-8b-instant",
-            )
+            # Output budget: chars/4 (rough tokens) * 1.4 (Urdu expansion). Cap 1500.
+            max_out = min(1500, max(256, int(len(chunk) / 4 * 1.4)))
+
+            for attempt in range(3):
+                try:
+                    part = self.groq.generate_response(
+                        system_prompt=system_prompt,
+                        messages=messages,
+                        max_tokens=max_out,
+                        temperature=0.3,
+                        model="llama-3.1-8b-instant",
+                    )
+                    break
+                except Exception as e:
+                    msg = str(e)
+                    m = _re.search(r"try again in ([\d.]+)s", msg)
+                    if "rate_limit" in msg.lower() or "429" in msg or "413" in msg:
+                        wait = float(m.group(1)) if m else (8 * (attempt + 1))
+                        wait = min(wait + 1, 30)
+                        logger.warning(f"chunk {i}: rate limited, waiting {wait:.1f}s (attempt {attempt+1}/3)")
+                        time.sleep(wait)
+                        continue
+                    raise
+            else:
+                raise RuntimeError(f"chunk {i}: rate-limited after 3 retries")
+
             translated_parts.append(self._clean_llm_response(part))
 
         translated_html = "".join(translated_parts)

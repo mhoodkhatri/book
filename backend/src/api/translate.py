@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["translation"])
 
-TRANSLATION_TIMEOUT_SECONDS = 60
+TRANSLATION_TIMEOUT_SECONDS = 240
 
 
 @router.post("/translate", response_model=TranslationResponse)
