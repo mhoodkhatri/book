@@ -26,14 +26,34 @@ export const auth = betterAuth({
   },
   emailVerification: {
     sendOnSignUp: true,
-    autoSignInAfterVerification: true,
+    autoSignInAfterVerification: false,
     sendVerificationEmail: async ({ user, url }) => {
-      await sendVerificationEmail(user, url);
+      console.log("[AUTH] sendVerificationEmail called for:", user.email, "url:", url);
+      try {
+        await sendVerificationEmail(user, url);
+        console.log("[AUTH] Verification email sent successfully to:", user.email);
+      } catch (err) {
+        console.error("[AUTH] Failed to send verification email:", err);
+        throw err;
+      }
     },
   },
   session: {
     expiresIn: 30 * 60,
     updateAge: 5 * 60,
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60,
+    },
+  },
+  advanced: {
+    crossSubDomainCookies: {
+      enabled: false,
+    },
+    defaultCookieAttributes: {
+      sameSite: "none",
+      secure: true,
+    },
   },
   user: {
     additionalFields: {

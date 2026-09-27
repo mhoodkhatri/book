@@ -67,3 +67,7 @@ backend/*.db
 auth-service/node_modules/
 auth-service/.env
 auth-service/dist/
+
+# Browser cookie exports (never commit)
+cookies.txt
+*.cookies

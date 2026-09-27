@@ -1,4 +1,8 @@
-"""Qdrant client wrapper for vector storage operations."""
+"""Qdrant client wrapper for vector storage operations.
+
+Supports both Qdrant Cloud (via URL + API key) and local file-based storage.
+If QDRANT_URL is set, uses cloud; otherwise, uses local persistence.
+"""
 
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
@@ -12,15 +16,22 @@ class QdrantService:
 
     def __init__(self):
         settings = get_settings()
-        self.client = QdrantClient(
-            url=settings.qdrant_url,
-            api_key=settings.qdrant_api_key,
-        )
+
+        if settings.qdrant_url:
+            # Cloud mode
+            self.client = QdrantClient(
+                url=settings.qdrant_url,
+                api_key=settings.qdrant_api_key,
+            )
+        else:
+            # Local file-based mode (no server needed)
+            self.client = QdrantClient(path=settings.qdrant_local_path)
+
         self.collection_name = settings.qdrant_collection
         self.dimension = settings.embedding_dimension
 
     def ensure_collection(self) -> bool:
-        """Create collection if it doesn't exist."""
+        """Create collection if it doesn't exist, including payload index."""
         collections = self.client.get_collections().collections
         exists = any(c.name == self.collection_name for c in collections)
 
@@ -31,6 +42,12 @@ class QdrantService:
                     size=self.dimension,
                     distance=Distance.COSINE,
                 ),
+            )
+            # Required for filtered deletes and searches by chapter_id
+            self.client.create_payload_index(
+                collection_name=self.collection_name,
+                field_name="chapter_id",
+                field_schema="keyword",
             )
             return True
         return False
@@ -137,8 +154,7 @@ class QdrantService:
         info = self.client.get_collection(self.collection_name)
         return {
             "name": self.collection_name,
-            "vectors_count": info.vectors_count,
-            "points_count": info.points_count,
+            "points_count": getattr(info, "points_count", 0),
         }
 
 

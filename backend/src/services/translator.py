@@ -5,6 +5,7 @@ import logging
 from bs4 import BeautifulSoup
 
 from src.services.groq_llm import get_groq_service
+from src.services.deepseek_llm import get_deepseek_service
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,7 @@ class TranslatorService:
 
     def __init__(self):
         self.groq = get_groq_service()
+        self.deepseek = get_deepseek_service()
 
     def _extract_and_placeholder_skipped(self, html: str) -> tuple[str, dict[str, str]]:
         """
@@ -83,51 +85,61 @@ class TranslatorService:
         terms = ", ".join(PRESERVE_TERMS)
         return TRANSLATION_PROMPT.format(terms=terms, content=content)
 
+    # Smaller chunks translated in parallel beat one big call: DeepSeek
+    # latency scales with output tokens, so N parallel small calls finish
+    # in ~max(call_i) instead of sum(call_i).
+    CHUNK_CHAR_LIMIT = 3500
+
+    def _chunk_html(self, html: str) -> list[str]:
+        """Split HTML into chunks under CHUNK_CHAR_LIMIT chars, breaking at top-level tags."""
+        soup = BeautifulSoup(html, "html.parser")
+        chunks: list[str] = []
+        current = ""
+        for el in soup.find_all(recursive=False) if soup.find_all(recursive=False) else [soup]:
+            piece = str(el)
+            if len(current) + len(piece) > self.CHUNK_CHAR_LIMIT and current:
+                chunks.append(current)
+                current = piece
+            else:
+                current += piece
+        if current:
+            chunks.append(current)
+        return chunks if chunks else [html]
+
     async def translate(self, content: str, chapter_title: str = "") -> tuple[str, dict]:
-        """
-        Translate HTML content from English to Urdu.
-
-        Args:
-            content: HTML content to translate
-            chapter_title: Chapter title for context
-
-        Returns:
-            Tuple of (translated_html, metadata_dict)
-        """
+        import asyncio
         start_time = time.time()
 
-        # Step 1: Extract and placeholder skip-tags
         processable_html, placeholders = self._extract_and_placeholder_skipped(content)
 
-        # Step 2: Build translation prompt
-        prompt = self._build_prompt(processable_html)
-
-        # Step 3: Call Groq LLM for translation
-        messages = [{"role": "user", "content": prompt}]
         system_prompt = (
             "You are a professional English-to-Urdu translator specializing in "
             "technical and educational content. You translate HTML content while "
             "preserving all HTML structure and formatting exactly."
         )
 
-        translated_html = self.groq.generate_response(
-            system_prompt=system_prompt,
-            messages=messages,
-            max_tokens=8192,
-            temperature=0.3,
-        )
+        chunks = self._chunk_html(processable_html)
 
-        # Step 4: Clean up LLM response (remove markdown fences if present)
-        translated_html = self._clean_llm_response(translated_html)
+        async def _translate_chunk(chunk: str) -> str:
+            prompt = self._build_prompt(chunk)
+            part = await self.deepseek.agenerate_response(
+                system_prompt=system_prompt,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=4096,
+                temperature=0.3,
+            )
+            return self._clean_llm_response(part)
 
-        # Step 5: Restore placeholders with original skip-tag content
+        translated_parts = await asyncio.gather(*(_translate_chunk(c) for c in chunks))
+        translated_html = "".join(translated_parts)
         final_html = self._restore_placeholders(translated_html, placeholders)
 
         elapsed_ms = int((time.time() - start_time) * 1000)
         metadata = {
             "latency_ms": elapsed_ms,
-            "model": self.groq.model,
+            "model": "deepseek-chat",
             "placeholders_restored": len(placeholders),
+            "chunks_translated": len(chunks),
         }
 
         return final_html, metadata
